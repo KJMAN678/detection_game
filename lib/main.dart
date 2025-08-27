@@ -1,4 +1,7 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:gallery_saver/gallery_saver.dart';
 
 void main() {
   runApp(const MyApp());
@@ -55,16 +58,47 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   int _counter = 0;
+  final ImagePicker _picker = ImagePicker();
+  XFile? _photo;
+  bool _saving = false;
+  String? _error;
 
   void _incrementCounter() {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
       _counter++;
     });
+  }
+
+  Future<void> _takePhoto() async {
+    setState(() {
+      _error = null;
+    });
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+      if (image == null) {
+        return;
+      }
+      setState(() {
+        _photo = image;
+        _saving = true;
+      });
+      final bool? saved = await GallerySaver.saveImage(image.path);
+      if (saved != true) {
+        setState(() {
+          _error = '保存に失敗しました';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'エラー: $e';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _saving = false;
+        });
+      }
+    }
   }
 
   @override
@@ -109,6 +143,30 @@ class _MyHomePageState extends State<MyHomePage> {
               '$_counter',
               style: Theme.of(context).textTheme.headlineMedium,
             ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _saving ? null : _takePhoto,
+              icon: const Icon(Icons.camera_alt),
+              label: Text(_saving ? '保存中...' : '撮影'),
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 8),
+              Text(_error!, style: const TextStyle(color: Colors.red)),
+            ],
+            const SizedBox(height: 12),
+            if (_photo != null)
+              Column(
+                children: [
+                  const Text('プレビュー'),
+                  const SizedBox(height: 8),
+                  Image.file(
+                    File(_photo!.path),
+                    width: 280,
+                    height: 280,
+                    fit: BoxFit.cover,
+                  ),
+                ],
+              ),
           ],
         ),
       ),
