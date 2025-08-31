@@ -5,7 +5,7 @@ import vision from '@google-cloud/vision';
 admin.initializeApp();
 const client = new vision.ImageAnnotatorClient();
 
-export const analyzeImage = onCall(async (request) => {
+export const analyzeImage = onCall(async (request: any) => {
   try {
     const data = request.data as any;
     const path: string | undefined = data?.path;
@@ -20,10 +20,10 @@ export const analyzeImage = onCall(async (request) => {
     if (modes.object) {
       const [objRes] = await client.objectLocalization(image);
       const anns = objRes.localizedObjectAnnotations ?? [];
-      result.objects = anns.map((o) => {
+      result.objects = anns.map((o: any) => {
         const verts = o.boundingPoly?.normalizedVertices ?? [];
-        const xs = verts.map((v) => v.x ?? 0);
-        const ys = verts.map((v) => v.y ?? 0);
+        const xs = verts.map((v: any) => v.x ?? 0);
+        const ys = verts.map((v: any) => v.y ?? 0);
         const minX = Math.min(...xs), minY = Math.min(...ys);
         const maxX = Math.max(...xs), maxY = Math.max(...ys);
         return {
@@ -37,7 +37,7 @@ export const analyzeImage = onCall(async (request) => {
     if (modes.label) {
       const [labRes] = await client.labelDetection(image);
       const labs = labRes.labelAnnotations ?? [];
-      result.labels = labs.map((l) => ({
+      result.labels = labs.map((l: any) => ({
         description: l.description,
         score: l.score,
       }));
