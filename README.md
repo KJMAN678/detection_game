@@ -19,8 +19,11 @@ $ emulator -avd Pixel_9
 
 # Android シミュレーターのID確認
 $ flutter devices
+
+$ flutter pub get
+
 # Android スマホでflutter立ち上げ
-$ flutter run -d emulator-5554
+$ flutter run -d emulator-5554 --dart-define=VISION_API_KEY=YOUR_API_KEY
 ```
 
 ### フェーズ1 PoC（Issue #10）: 実装概要

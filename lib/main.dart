@@ -4,7 +4,8 @@ import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:gallery_saver_plus/gallery_saver_plus.dart';
+import 'package:gallery_saver_plus/files.dart';
+import 'package:gallery_saver_plus/gallery_saver.dart';
 
 import 'models/vision_result.dart';
 import 'vision/client_direct_vision_adapter.dart';
@@ -15,22 +16,26 @@ Future<void> main() async {
   final cameras = await availableCameras();
   final firstCamera = cameras.first;
 
-  final apiKey = const String.fromEnvironment('VISION_API_KEY', defaultValue: '');
+  final apiKey = const String.fromEnvironment(
+    'VISION_API_KEY',
+    defaultValue: '',
+  );
   final vision = ClientDirectVisionAdapter(apiKey: apiKey);
 
   runApp(
     MaterialApp(
       theme: ThemeData.dark(),
-      home: TakePictureScreen(
-        camera: firstCamera,
-        vision: vision,
-      ),
+      home: TakePictureScreen(camera: firstCamera, vision: vision),
     ),
   );
 }
 
 class TakePictureScreen extends StatefulWidget {
-  const TakePictureScreen({super.key, required this.camera, required this.vision});
+  const TakePictureScreen({
+    super.key,
+    required this.camera,
+    required this.vision,
+  });
 
   final CameraDescription camera;
   final VisionService vision;
@@ -46,10 +51,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
   @override
   void initState() {
     super.initState();
-    _controller = CameraController(
-      widget.camera,
-      ResolutionPreset.medium,
-    );
+    _controller = CameraController(widget.camera, ResolutionPreset.medium);
     _initializeControllerFuture = _controller.initialize();
   }
 
@@ -75,9 +77,9 @@ class TakePictureScreenState extends State<TakePictureScreen> {
       );
     } catch (e) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('エラー: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('エラー: $e')));
     }
   }
 
@@ -107,7 +109,11 @@ class DisplayPictureScreen extends StatefulWidget {
   final String imagePath;
   final VisionService vision;
 
-  const DisplayPictureScreen({super.key, required this.imagePath, required this.vision});
+  const DisplayPictureScreen({
+    super.key,
+    required this.imagePath,
+    required this.vision,
+  });
 
   @override
   State<DisplayPictureScreen> createState() => _DisplayPictureScreenState();
@@ -163,9 +169,9 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('保存エラー: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('保存エラー: $e')));
     }
   }
 
@@ -209,9 +215,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
             ),
           if (!_loading && _error == null)
             Positioned.fill(
-              child: CustomPaint(
-                painter: _OverlayPainter(result: _result),
-              ),
+              child: CustomPaint(painter: _OverlayPainter(result: _result)),
             ),
           if (!_loading && _error == null)
             Positioned(
@@ -225,7 +229,10 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                       .map(
                         (l) => Container(
                           margin: const EdgeInsets.symmetric(horizontal: 4),
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: Colors.black54,
                             borderRadius: BorderRadius.circular(12),
@@ -260,7 +267,10 @@ class _OverlayPainter extends CustomPainter {
 
     final textPainter = (String text) {
       final tp = TextPainter(
-        text: TextSpan(text: text, style: const TextStyle(color: Colors.yellow, fontSize: 14)),
+        text: TextSpan(
+          text: text,
+          style: const TextStyle(color: Colors.yellow, fontSize: 14),
+        ),
         textDirection: TextDirection.ltr,
       );
       tp.layout();
