@@ -1,13 +1,11 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:gallery_saver/gallery_saver.dart';
+import 'package:gallery_saver_plus/gallery_saver_plus.dart';
 import 'models/vision_models.dart';
-import 'dart:async';
-import 'dart:io';
 
 import 'package:camera/camera.dart';
-import 'package:flutter/material.dart';
 // import 'game/scoring.dart';
 import 'services/vision_service_client.dart';
 
@@ -46,6 +44,9 @@ class TakePictureScreen extends StatefulWidget {
 class TakePictureScreenState extends State<TakePictureScreen> {
   late CameraController _controller;
   late Future<void> _initializeControllerFuture;
+  final ImagePicker _picker = ImagePicker();
+  XFile? _photo;
+  bool _saving = false;
 
   @override
   void initState() {
@@ -217,13 +218,14 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                         final w = constraints.maxWidth;
                         final h = constraints.maxHeight;
                         return Stack(
-                          children: _result!.objects.map((o) {
-                            final bx = o.bbox;
+                          children: _result!.detections.map((d) {
+                            final bx = d.box;
+                            if (bx == null) return const SizedBox.shrink();
                             return Positioned(
                               left: bx.x * w,
                               top: bx.y * h,
-                              width: bx.w * w,
-                              height: bx.h * h,
+                              width: bx.width * w,
+                              height: bx.height * h,
                               child: Container(
                                 decoration: BoxDecoration(
                                   border: Border.all(
@@ -240,7 +242,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                                       vertical: 2,
                                     ),
                                     child: Text(
-                                      o.name,
+                                      d.label.name,
                                       style: const TextStyle(fontSize: 12),
                                     ),
                                   ),
