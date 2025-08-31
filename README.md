@@ -29,6 +29,8 @@ $ emulator -avd Pixel_9
 
 # Android シミュレーターのID確認
 $ flutter devices
+
+$ flutter pub get
 # Android スマホでflutter立ち上げ
 $ flutter run -d emulator-5554 --dart-define=VISION_API_KEY=HOGE
 ```
