@@ -22,3 +22,6 @@ $ flutter devices
 # Android スマホでflutter立ち上げ
 $ flutter run -d emulator-5554
 ```
+
+### 参考サイト
+- [Take a picture using the camera](https://docs.flutter.dev/cookbook/plugins/picture-using-camera)
