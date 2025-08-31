@@ -3,12 +3,19 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
-import '../models/vision_models.dart';
+// import '../models/vision_models.dart';
 
 class ClientDirectVisionAdapter {
-  static const _apiKey = String.fromEnvironment('VISION_API_KEY', defaultValue: '');
+  static const _apiKey = String.fromEnvironment(
+    'VISION_API_KEY',
+    defaultValue: '',
+  );
 
-  static Future<VisionResult> analyzeImageFile(File file, {bool detectObjects = true, bool detectLabels = true}) async {
+  static Future<VisionResult> analyzeImageFile(
+    File file, {
+    bool detectObjects = true,
+    bool detectLabels = true,
+  }) async {
     if (_apiKey.isEmpty) {
       throw Exception('VISION_API_KEY is not set');
     }
@@ -23,14 +30,16 @@ class ClientDirectVisionAdapter {
       features.add({'type': 'LABEL_DETECTION'});
     }
 
-    final uri = Uri.parse('https://vision.googleapis.com/v1/images:annotate?key=$_apiKey');
+    final uri = Uri.parse(
+      'https://vision.googleapis.com/v1/images:annotate?key=$_apiKey',
+    );
     final body = {
       'requests': [
         {
           'image': {'content': imgContent},
           'features': features,
-        }
-      ]
+        },
+      ],
     };
 
     final resp = await http.post(
@@ -49,27 +58,38 @@ class ClientDirectVisionAdapter {
     final r = responses.first as Map<String, dynamic>;
 
     final objectsJson = (r['localizedObjectAnnotations'] as List?) ?? [];
-    final objects = objectsJson.map((oRaw) {
-      final o = oRaw as Map<String, dynamic>;
-      final poly = o['boundingPoly'] as Map<String, dynamic>?;
-      final verts = (poly?['normalizedVertices'] as List?) ?? [];
-      final xs = verts.map((vRaw) => ((vRaw as Map<String, dynamic>)['x'] ?? 0).toDouble()).toList();
-      final ys = verts.map((vRaw) => ((vRaw as Map<String, dynamic>)['y'] ?? 0).toDouble()).toList();
-      final minX = xs.isEmpty ? 0.0 : xs.reduce((a, b) => a < b ? a : b);
-      final minY = ys.isEmpty ? 0.0 : ys.reduce((a, b) => a < b ? a : b);
-      final maxX = xs.isEmpty ? 0.0 : xs.reduce((a, b) => a > b ? a : b);
-      final maxY = ys.isEmpty ? 0.0 : ys.reduce((a, b) => a > b ? a : b);
-      return VisionObject(
-        name: (o['name'] ?? '') as String,
-        score: ((o['score'] ?? 0) as num).toDouble(),
-        bbox: VisionBBox(
-          x: minX,
-          y: minY,
-          w: (maxX - minX).clamp(0, 1).toDouble(),
-          h: (maxY - minY).clamp(0, 1).toDouble(),
-        ),
-      );
-    }).toList().cast<VisionObject>();
+    final objects = objectsJson
+        .map((oRaw) {
+          final o = oRaw as Map<String, dynamic>;
+          final poly = o['boundingPoly'] as Map<String, dynamic>?;
+          final verts = (poly?['normalizedVertices'] as List?) ?? [];
+          final xs = verts
+              .map(
+                (vRaw) => ((vRaw as Map<String, dynamic>)['x'] ?? 0).toDouble(),
+              )
+              .toList();
+          final ys = verts
+              .map(
+                (vRaw) => ((vRaw as Map<String, dynamic>)['y'] ?? 0).toDouble(),
+              )
+              .toList();
+          final minX = xs.isEmpty ? 0.0 : xs.reduce((a, b) => a < b ? a : b);
+          final minY = ys.isEmpty ? 0.0 : ys.reduce((a, b) => a < b ? a : b);
+          final maxX = xs.isEmpty ? 0.0 : xs.reduce((a, b) => a > b ? a : b);
+          final maxY = ys.isEmpty ? 0.0 : ys.reduce((a, b) => a > b ? a : b);
+          return VisionObject(
+            name: (o['name'] ?? '') as String,
+            score: ((o['score'] ?? 0) as num).toDouble(),
+            bbox: VisionBBox(
+              x: minX,
+              y: minY,
+              w: (maxX - minX).clamp(0, 1).toDouble(),
+              h: (maxY - minY).clamp(0, 1).toDouble(),
+            ),
+          );
+        })
+        .toList()
+        .cast<VisionObject>();
 
     final labelsJson = (r['labelAnnotations'] as List?) ?? [];
     final labels = labelsJson

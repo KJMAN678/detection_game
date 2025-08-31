@@ -3,8 +3,8 @@ import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'models/vision_models.dart';
-import 'game/scoring.dart';
+// import 'models/vision_models.dart';
+// import 'game/scoring.dart';
 import 'services/vision_service_client.dart';
 
 Future<void> main() async {
@@ -190,14 +190,23 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                               height: bx.h * h,
                               child: Container(
                                 decoration: BoxDecoration(
-                                  border: Border.all(color: Colors.redAccent, width: 2),
+                                  border: Border.all(
+                                    color: Colors.redAccent,
+                                    width: 2,
+                                  ),
                                 ),
                                 child: Align(
                                   alignment: Alignment.topLeft,
                                   child: Container(
                                     color: Colors.redAccent.withOpacity(0.7),
-                                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                                    child: Text(o.name, style: const TextStyle(fontSize: 12)),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                      vertical: 2,
+                                    ),
+                                    child: Text(
+                                      o.name,
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
                                   ),
                                 ),
                               ),
@@ -214,7 +223,10 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
           if (_error != null)
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: Text(_error!, style: const TextStyle(color: Colors.redAccent)),
+              child: Text(
+                _error!,
+                style: const TextStyle(color: Colors.redAccent),
+              ),
             ),
           if (_result != null)
             Padding(
@@ -242,7 +254,9 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                 ),
                 const SizedBox(width: 16),
                 if (_result != null)
-                  Text('Score: ${scoreForLabels(_result!.labels.map((e) => e.description))}'),
+                  Text(
+                    'Score: ${scoreForLabels(_result!.labels.map((e) => e.description))}',
+                  ),
               ],
             ),
           ),

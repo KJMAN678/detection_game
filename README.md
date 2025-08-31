@@ -24,13 +24,13 @@ $ flutter run -d "iPhone 16 Pro"
 
 # Android シミュレーターのリスト確認
 $ emulator -list-avds
-# Android シミュレーター起動
+# 別のターミナルでAndroid シミュレーター起動
 $ emulator -avd Pixel_9
 
 # Android シミュレーターのID確認
 $ flutter devices
 # Android スマホでflutter立ち上げ
-$ flutter run -d emulator-5554
+$ flutter run -d emulator-5554 --dart-define=VISION_API_KEY=HOGE
 ```
 
 ### 参考サイト
