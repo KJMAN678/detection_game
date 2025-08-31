@@ -1,3 +1,13 @@
+# ローカルPoC (C案: クライアント直Vision)
+
+- 本PoCは開発者ローカル限定で使用してください（鍵は配布禁止）
+- 実行例:
+```
+flutter pub get
+flutter run --dart-define=VISION_API_KEY=YOUR_API_KEY
+```
+
+
 ### detection_game
 
 ```sh
