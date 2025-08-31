@@ -3,6 +3,29 @@ import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+<<<<<<< Updated upstream
+||||||| constructed merge base
+import 'dart:convert';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:path/path.dart' as p;
+
+import 'services/vision_service.dart';
+import 'models/vision_models.dart';
+import 'game/scoring.dart';
+=======
+import 'dart:convert';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:path/path.dart' as p;
+
+import 'services/vision_service.dart';
+import 'models/vision_models.dart';
+import 'game/scoring.dart';
+import 'services/vision_service_client.dart';
+>>>>>>> Stashed changes
 
 Future<void> main() async {
   // Ensure that plugin services are initialized so that `availableCameras()`
@@ -125,6 +148,80 @@ class DisplayPictureScreen extends StatelessWidget {
   const DisplayPictureScreen({super.key, required this.imagePath});
 
   @override
+<<<<<<< Updated upstream
+||||||| constructed merge base
+  State<DisplayPictureScreen> createState() => _DisplayPictureScreenState();
+}
+
+class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
+  VisionResult? _result;
+  bool _loading = false;
+  String? _error;
+
+  Future<void> _analyze() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      await VisionService.ensureInitialized();
+      final gs = await VisionService.uploadImage(File(widget.imagePath));
+      final res = await VisionService.analyzeGsImage(gs, detectObjects: true, detectLabels: true);
+      setState(() {
+        _result = res;
+      });
+    } catch (e) {
+      setState(() {
+        _error = '$e';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }
+    }
+  }
+
+  @override
+=======
+  State<DisplayPictureScreen> createState() => _DisplayPictureScreenState();
+}
+
+class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
+  VisionResult? _result;
+  bool _loading = false;
+  String? _error;
+
+  Future<void> _analyze() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final res = await ClientDirectVisionAdapter.analyzeImageFile(
+        File(widget.imagePath),
+        detectObjects: true,
+        detectLabels: true,
+      );
+      setState(() {
+        _result = res;
+      });
+    } catch (e) {
+      setState(() {
+        _error = '$e';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }
+    }
+  }
+
+  @override
+>>>>>>> Stashed changes
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Display the Picture')),

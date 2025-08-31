@@ -38,6 +38,17 @@ dependencies:
   video_player: ^2.10.0
   path_provider: ^2.1.5
   path: ^1.9.1
+<<<<<<< Updated upstream
+||||||| constructed merge base
+  firebase_core: ^3.6.0
+  firebase_storage: ^12.3.2
+  cloud_functions: ^5.1.2
+=======
+  firebase_core: ^3.6.0
+  firebase_storage: ^12.3.2
+  cloud_functions: ^5.1.2
+  http: ^1.2.2
+>>>>>>> Stashed changes
 
 dev_dependencies:
   flutter_test:
