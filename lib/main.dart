@@ -1,9 +1,13 @@
+import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:gallery_saver/gallery_saver.dart';
+import 'models/vision_models.dart';
 import 'dart:async';
 import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-// import 'models/vision_models.dart';
 // import 'game/scoring.dart';
 import 'services/vision_service_client.dart';
 
@@ -163,6 +167,38 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
     }
   }
 
+  Future<void> _takePhoto() async {
+    setState(() {
+      _error = null;
+    });
+    try {
+      final XFile? image = await _picker.pickImage(source: ImageSource.camera);
+      if (image == null) {
+        return;
+      }
+      setState(() {
+        _photo = image;
+        _saving = true;
+      });
+      final bool? saved = await GallerySaver.saveImage(image.path);
+      if (saved != true) {
+        setState(() {
+          _error = '保存に失敗しました';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'エラー: $e';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _saving = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final img = Image.file(File(widget.imagePath));
@@ -228,39 +264,32 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                 style: const TextStyle(color: Colors.redAccent),
               ),
             ),
-          if (_result != null)
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _saving ? null : _takePhoto,
+              icon: const Icon(Icons.camera_alt),
+              label: Text(_saving ? '保存中...' : '撮影'),
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 8),
+              Text(_error!, style: const TextStyle(color: Colors.red)),
+            ],
+            const SizedBox(height: 12),
+            if (_photo != null)
+              Column(
                 children: [
-                  Wrap(
-                    spacing: 8,
-                    children: _result!.labels
-                        .take(6)
-                        .map((l) => Chip(label: Text(l.description)))
-                        .toList(),
+                  const Text('プレビュー'),
+                  const SizedBox(height: 8),
+                  Image.file(
+                    File(_photo!.path),
+                    width: 280,
+                    height: 280,
+                    fit: BoxFit.cover,
                   ),
                 ],
               ),
-            ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                ElevatedButton.icon(
-                  onPressed: _loading ? null : _analyze,
-                  icon: const Icon(Icons.analytics),
-                  label: const Text('解析する'),
-                ),
-                const SizedBox(width: 16),
-                if (_result != null)
-                  Text(
-                    'Score: ${scoreForLabels(_result!.labels.map((e) => e.description))}',
-                  ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
