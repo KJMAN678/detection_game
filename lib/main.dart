@@ -201,7 +201,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                                   child: Container(
                                     color: Colors.redAccent.withOpacity(0.7),
                                     padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-                                    child: Text('${o.name} ${(o.score * 100).toStringAsFixed(0)}%', style: const TextStyle(fontSize: 12)),
+                                    child: Text(o.name, style: const TextStyle(fontSize: 12)),
                                   ),
                                 ),
                               ),
@@ -229,7 +229,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                     spacing: 8,
                     children: _result!.labels
                         .take(6)
-                        .map((l) => Chip(label: Text('${l.description} ${(l.score * 100).toStringAsFixed(0)}%')))
+                        .map((l) => Chip(label: Text(l.description)))
                         .toList(),
                   ),
                 ],
