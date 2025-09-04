@@ -4,8 +4,9 @@ import 'dart:typed_data';
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
-import 'package:gallery_saver_plus/files.dart';
 import 'package:gallery_saver_plus/gallery_saver.dart';
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import 'models/vision_result.dart';
 import 'vision/client_direct_vision_adapter.dart';
@@ -13,21 +14,50 @@ import 'vision/vision_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   final cameras = await availableCameras();
   final firstCamera = cameras.first;
-
-  final apiKey = const String.fromEnvironment(
-    'VISION_API_KEY',
-    defaultValue: '',
-  );
-  final vision = ClientDirectVisionAdapter(apiKey: apiKey);
 
   runApp(
     MaterialApp(
       theme: ThemeData.dark(),
-      home: TakePictureScreen(camera: firstCamera, vision: vision),
+      home: _BootstrapScreen(camera: firstCamera),
     ),
   );
+}
+
+class _BootstrapScreen extends StatelessWidget {
+  final CameraDescription camera;
+
+  const _BootstrapScreen({required this.camera});
+
+  Future<VisionService> _loadVision() async {
+    final callable = FirebaseFunctions.instance.httpsCallable('callExternalApi');
+    final res = await callable({});
+    final apiKey = res.data['apiKey'];
+    return ClientDirectVisionAdapter(apiKey: apiKey);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<VisionService>(
+      future: _loadVision(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (snapshot.hasError) {
+          return Scaffold(
+            body: Center(child: Text('初期化エラー: ${snapshot.error}')),
+          );
+        }
+        final vision = snapshot.data!;
+        return TakePictureScreen(camera: camera, vision: vision);
+      },
+    );
+  }
 }
 
 class TakePictureScreen extends StatefulWidget {
