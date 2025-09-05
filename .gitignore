@@ -120,5 +120,4 @@ app.*.symbols
 
 .device_ip
 
-google-services.json
 GoogleService-Info.plist
