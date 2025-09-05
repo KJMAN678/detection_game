@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1082671705086",
+    "project_id": "detection-game-eb6dc",
+    "storage_bucket": "detection-game-eb6dc.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1082671705086:android:d5d0527334658dcfb3aeaf",
+        "android_client_info": {
+          "package_name": "com.example.detection_game"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBIh-HkVrtAQy-Hhp-vRST2a_rV0wsbjn8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
