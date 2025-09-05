@@ -64,9 +64,15 @@ $ flutter build apk --debug --dart-define=VISION_API_KEY=xxxx_your_local_key_xxx
 - [Take a picture using the camera](https://docs.flutter.dev/cookbook/plugins/picture-using-came
 
 - [flutter にFirebaseを追加する](https://firebase.google.com/docs/flutter/setup?hl=ja&platform=ios)
+
 - [Firebase Distribution でテスターにアプリ配布](https://firebase.google.com/docs/app-distribution/android/distribute-console?hl=ja&_gl=1*1yfpyy*_up*MQ..*_ga*ODAwMjA1NTQzLjE3NTY5OTI3MTg.*_ga_CW55HF8NVT*czE3NTY5OTI3MTgkbzEkZzAkdDE3NTY5OTI3MTgkajYwJGwwJGgw)
+
 - [Secret Manager で環境変数を管理する](https://firebase.google.com/docs/functions/config-env?hl=ja&gen=2nd)
 
 ```sh
+# 機密情報の環境変数を cloud functions に設定する
 $ firebase functions:secrets:set SECRET_NAME
+
+# cloud functions にデプロイする
+$ firebase deploy --only functions
 ```
