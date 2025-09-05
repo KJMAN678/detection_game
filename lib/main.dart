@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:gallery_saver_plus/gallery_saver.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 
 import 'models/vision_result.dart';
 import 'vision/client_direct_vision_adapter.dart';
@@ -15,6 +16,11 @@ import 'vision/vision_service.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  await FirebaseAppCheck.instance.activate(
+    webProvider: ReCaptchaV3Provider('recaptcha-v3-site-key'),
+    androidProvider: AndroidProvider.debug,
+  );
+
   final cameras = await availableCameras();
   final firstCamera = cameras.first;
 
@@ -32,7 +38,9 @@ class _BootstrapScreen extends StatelessWidget {
   const _BootstrapScreen({required this.camera});
 
   Future<VisionService> _loadVision() async {
-    final callable = FirebaseFunctions.instance.httpsCallable('callExternalApi');
+    final callable = FirebaseFunctions.instance.httpsCallable(
+      'callExternalApi',
+    );
     final res = await callable({});
     final apiKey = res.data['apiKey'];
     return ClientDirectVisionAdapter(apiKey: apiKey);
