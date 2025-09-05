@@ -69,10 +69,20 @@ $ flutter build apk --debug --dart-define=VISION_API_KEY=xxxx_your_local_key_xxx
 
 - [Secret Manager で環境変数を管理する](https://firebase.google.com/docs/functions/config-env?hl=ja&gen=2nd)
 
+- [Flutter アプリで App Check を使ってみる](https://firebase.google.com/docs/app-check/flutter/default-providers?hl=ja)
+
+- [Google Play を Firebase にリンクする](https://support.google.com/firebase/answer/6392038)
+
 ```sh
 # 機密情報の環境変数を cloud functions に設定する
 $ firebase functions:secrets:set SECRET_NAME
 
 # cloud functions にデプロイする
 $ firebase deploy --only functions
+```
+
+- [証明書の Keytool](https://developers.google.com/android/guides/client-auth?hl=ja)
+```sh
+# デバッグ用証明書のフィンガープリントを取得する
+$ keytool -list -v -alias androiddebugkey -keystore ~/.android/debug.keystore
 ```
