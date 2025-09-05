@@ -27,6 +27,9 @@ $ flutter run -d emulator-5554 --dart-define=VISION_API_KEY=YOUR_API_KEY
 
 # Android apk ビルド
 $ flutter build apk --release
+
+# Android appbundle ビルド
+$ flutter build appbundle --release
 ```
 
 ### フェーズ1 PoC（Issue #10）: 実装概要
