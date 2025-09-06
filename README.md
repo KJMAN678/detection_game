@@ -80,10 +80,10 @@ $ flutter build apk --debug --dart-define=VISION_API_KEY=xxxx_your_local_key_xxx
 
 ```sh
 # 機密情報の環境変数を cloud functions に設定する
-$ firebase functions:secrets:set SECRET_NAME
+$ firebase functions:secrets:set VISION_API_KEY --project your-project-id
 
 # cloud functions にデプロイする
-$ firebase deploy --only functions
+$ firebase deploy --only functions --project your-project-id
 ```
 
 - [証明書の Keytool](https://developers.google.com/android/guides/client-auth?hl=ja)
@@ -95,6 +95,15 @@ $ keytool -list -v -alias androiddebugkey -keystore ~/.android/debug.keystore
 $ keytool -list -v -keystore ../../.android/upload-keystore.jks -alias upload
 ```
 
+### Firebase の設定
+
+- debug用の証明書のフィンガープリントを取得
+  - [クライアント認証](https://developers.google.com/android/guides/client-auth?hl=ja#keytool-certificate)
+```sh
+$ keytool -list -v \
+-alias androiddebugkey -keystore ~/.android/debug.keystore
+```
+
 ### リリース用の設定を行う
 
 - リリース用のアップロードキーストアを作成
@@ -102,6 +111,13 @@ $ keytool -list -v -keystore ../../.android/upload-keystore.jks -alias upload
 ```sh
 $ keytool -genkey -v -keystore ~/upload-keystore.jks -keyalg RSA \
         -keysize 2048 -validity 10000 -alias upload
+```
+
+- リリース用証明書のフィンガープリントを取得
+
+```sh
+$ keytool -list -v \
+-alias upload -keystore ~/.android/upload-keystore.jks
 ```
 
 ```sh
@@ -119,3 +135,11 @@ keyPassword=...
 
 ### Google Play Console
 - [Google Play Console](https://play.google.com/console)
+
+```sh
+# Android appbundle ビルド
+$ flutter build appbundle --release
+
+# ログを詳細に出力するビルド
+$ flutter build appbundle --release --verbose
+```
