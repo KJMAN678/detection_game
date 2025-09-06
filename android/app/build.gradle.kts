@@ -1,3 +1,11 @@
+import java.util.Properties
+import java.io.FileInputStream
+
+val keystoreProperties = Properties().apply {
+    val props = rootProject.file("key.properties")
+    if (props.exists()) load(FileInputStream(props))
+}
+
 plugins {
     id("com.android.application")
     // START: FlutterFire Configuration
@@ -33,13 +41,46 @@ android {
         versionName = flutter.versionName
     }
 
-    buildTypes {
-        release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+    signingConfigs {
+        create("release") {
+            val storeFilePath = keystoreProperties.getProperty("storeFile")
+                ?: throw GradleException("storeFile missing in key.properties")
+            val storePw = keystoreProperties.getProperty("storePassword")
+                ?: throw GradleException("storePassword missing in key.properties")
+            val alias = keystoreProperties.getProperty("keyAlias")
+                ?: throw GradleException("keyAlias missing in key.properties")
+            val keyPw = keystoreProperties.getProperty("keyPassword")
+                ?: throw GradleException("keyPassword missing in key.properties")
+
+            println(">>> storeFile resolves to: " + file(storeFilePath).absolutePath)
+            storeFile = file(storeFilePath)           // ← File に変換
+            storePassword = storePw
+            keyAlias = alias
+            keyPassword = keyPw
         }
     }
+
+    buildTypes {
+        getByName("debug") {
+            // Debug 用設定
+            // コードの最適化
+            isMinifyEnabled = false
+            // リソースの最適化
+            isShrinkResources = false
+        }
+        getByName("release") {
+            // いまはデバッグ鍵で署名している状態
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = true
+            // リソースの最適化
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+    }
+
 }
 
 flutter {

@@ -23,13 +23,15 @@ $ flutter devices
 $ flutter pub get
 
 # Android スマホでflutter立ち上げ
-$ flutter run -d emulator-5554 --dart-define=VISION_API_KEY=YOUR_API_KEY
+$ flutter run -d emulator-5554 --dart-define=VISION_API_KEY=YOUR_API_KEY --flavor debug
 
 # Android apk ビルド
 $ flutter build apk --release
 
 # Android appbundle ビルド
 $ flutter build appbundle --release
+
+$ flutter build appbundle --release --verbose
 ```
 
 ### フェーズ1 PoC（Issue #10）: 実装概要
@@ -88,4 +90,32 @@ $ firebase deploy --only functions
 ```sh
 # デバッグ用証明書のフィンガープリントを取得する
 $ keytool -list -v -alias androiddebugkey -keystore ~/.android/debug.keystore
+
+# キーストアがあるか確認
+$ keytool -list -v -keystore ../../.android/upload-keystore.jks -alias upload
 ```
+
+### リリース用の設定を行う
+
+- リリース用のアップロードキーストアを作成
+- [Create an upload keystore](https://docs.flutter.dev/deployment/android#create-an-upload-keystore)
+```sh
+$ keytool -genkey -v -keystore ~/upload-keystore.jks -keyalg RSA \
+        -keysize 2048 -validity 10000 -alias upload
+```
+
+```sh
+$ touch android/key.properties
+```
+- key.properties に下記を入力
+```sh
+storeFile=../../../../.android/upload-keystore.jks
+storePassword=...
+keyAlias=upload
+keyPassword=...
+```
+
+- [android/app/build.gradle.kts を修正](https://github.com/KJMAN678/detection_game/issues/19#issue-3389314083)
+
+### Google Play Console
+- [Google Play Console](https://play.google.com/console)
