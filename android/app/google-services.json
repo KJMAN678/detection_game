@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "1082671705086",
-    "project_id": "detection-game-eb6dc",
-    "storage_bucket": "detection-game-eb6dc.firebasestorage.app"
+    "project_number": "35956403795",
+    "project_id": "detection-game-963d4",
+    "storage_bucket": "detection-game-963d4.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1082671705086:android:d5d0527334658dcfb3aeaf",
+        "mobilesdk_app_id": "1:35956403795:android:5e0bb6c062ee60f13d60a6",
         "android_client_info": {
-          "package_name": "com.example.detection_game"
+          "package_name": "com.koji.detection_game"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyBIh-HkVrtAQy-Hhp-vRST2a_rV0wsbjn8"
+          "current_key": "AIzaSyC5a97VNeTuco3T2cIc2fHuf7xHCeNPA6o"
         }
       ],
       "services": {

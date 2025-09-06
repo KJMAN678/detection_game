@@ -1,4 +1,4 @@
-package com.example.detection_game
+package com.koji.detection_game
 
 import io.flutter.embedding.android.FlutterActivity
 
