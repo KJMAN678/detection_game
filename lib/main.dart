@@ -213,6 +213,34 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
     }
   }
 
+  int _headPoint(String label) {
+    final s = label.trim();
+    if (s.isEmpty) return 0;
+    final code = s.codeUnitAt(0);
+    final isDigit = code >= 48 && code <= 57;
+    final isUpper = code >= 65 && code <= 90;
+    final isLower = code >= 97 && code <= 122;
+    if (isDigit) return 4;
+    if (!(isUpper || isLower)) return 5;
+    final lower = s[0].toLowerCase();
+    if (lower == 'x') return 3;
+    if (lower == 'q') return 2;
+    return 1;
+  }
+
+  int _labelScore(String description) {
+    final hp = _headPoint(description);
+    return description.length * hp;
+  }
+
+  int _totalScore(Iterable<VisionLabel> labels) {
+    var sum = 0;
+    for (final l in labels) {
+      sum += _labelScore(l.description);
+    }
+    return sum;
+  }
+
   @override
   Widget build(BuildContext context) {
     final imageWidget = Image.file(File(widget.imagePath));
@@ -255,6 +283,27 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
             Positioned.fill(
               child: CustomPaint(painter: _OverlayPainter(result: _result)),
             ),
+          if (!_loading && _error == null)
+            Positioned(
+              left: 8,
+              right: 8,
+              bottom: 56,
+              child: Align(
+                alignment: Alignment.bottomLeft,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Colors.black54,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'Total Score: ${_totalScore(_result.labels)}',
+                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ),
+
           if (!_loading && _error == null)
             Positioned(
               left: 8,
