@@ -85,6 +85,7 @@ class TakePictureScreen extends StatefulWidget {
 class TakePictureScreenState extends State<TakePictureScreen> {
   late CameraController _controller;
   late Future<void> _initializeControllerFuture;
+  int _totalPoints = 0;
 
   @override
   void initState() {
@@ -105,14 +106,20 @@ class TakePictureScreenState extends State<TakePictureScreen> {
       final image = await _controller.takePicture();
       if (!context.mounted) return;
 
-      await Navigator.of(context).push(
-        MaterialPageRoute<void>(
+      final earned = await Navigator.of(context).push<int>(
+        MaterialPageRoute<int>(
           builder: (context) => DisplayPictureScreen(
             imagePath: image.path,
             vision: widget.vision,
           ),
         ),
       );
+      if (!context.mounted) return;
+      if (earned != null && earned > 0) {
+        setState(() {
+          _totalPoints += earned;
+        });
+      }
     } catch (e) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(
@@ -129,7 +136,30 @@ class TakePictureScreenState extends State<TakePictureScreen> {
         future: _initializeControllerFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
-            return CameraPreview(_controller);
+            return Stack(
+              children: [
+                Positioned.fill(child: CameraPreview(_controller)),
+                Positioned(
+                  left: 8,
+                  right: 8,
+                  bottom: 8,
+                  child: Align(
+                    alignment: Alignment.bottomLeft,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'total $_totalPoints points',
+                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
           } else {
             return const Center(child: CircularProgressIndicator());
           }
@@ -223,6 +253,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
     if (isDigit) return 4;
     if (!(isUpper || isLower)) return 5;
     final lower = s[0].toLowerCase();
+
     if (lower == 'x') return 3;
     if (lower == 'q') return 2;
     return 1;
@@ -244,6 +275,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
   @override
   Widget build(BuildContext context) {
     final imageWidget = Image.file(File(widget.imagePath));
+    final earnedPoints = _totalScore(_result.labels);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Display the Picture'),
@@ -252,6 +284,13 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
             onPressed: _saveToGallery,
             icon: const Icon(Icons.save_alt),
             tooltip: 'ギャラリーに保存',
+          ),
+          IconButton(
+            onPressed: () {
+              Navigator.of(context).pop<int>(earnedPoints);
+            },
+            icon: const Icon(Icons.check),
+            tooltip: 'getポイントを確定して戻る',
           ),
         ],
       ),
@@ -297,7 +336,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    'Total Score: ${_totalScore(_result.labels)}',
+                    'get ${_totalScore(_result.labels)} points',
                     style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
