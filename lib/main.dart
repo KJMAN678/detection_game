@@ -107,6 +107,14 @@ class _GameStartScreenState extends State<GameStartScreen> {
   }
 }
 
+class EarnResult {
+  final int earned;
+  final List<String> labels;
+  EarnResult({required this.earned, required this.labels});
+}
+
+
+
 class GamePlayScreen extends StatefulWidget {
   final CameraDescription camera;
   final VisionService vision;
@@ -116,12 +124,14 @@ class GamePlayScreen extends StatefulWidget {
   State<GamePlayScreen> createState() => _GamePlayScreenState();
 }
 
+
 class _GamePlayScreenState extends State<GamePlayScreen> {
   final _player = AudioPlayer();
   int _sessionPoints = 0;
   bool _timeUp = false;
   Timer? _timer;
   int _remaining = 10;
+  final Set<String> _usedLabels = {};
 
   @override
   void initState() {
@@ -184,6 +194,10 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
               onEarned: _onEarned,
               externalTotalPoints: _sessionPoints,
               showExternalTotalAsTotal: true,
+              usedLabels: _usedLabels,
+              onCommittedLabels: (labels) {
+                _usedLabels.addAll(labels.map((e) => e.trim().toLowerCase()));
+              },
             ),
           ),
           Positioned(
@@ -265,6 +279,8 @@ class TakePictureScreen extends StatefulWidget {
     this.onEarned,
     this.externalTotalPoints,
     this.showExternalTotalAsTotal = false,
+    this.usedLabels,
+    this.onCommittedLabels,
   });
 
   final CameraDescription camera;
@@ -274,6 +290,9 @@ class TakePictureScreen extends StatefulWidget {
   final void Function(int earned)? onEarned;
   final int? externalTotalPoints;
   final bool showExternalTotalAsTotal;
+
+  final Set<String>? usedLabels;
+  final void Function(List<String> labels)? onCommittedLabels;
 
   @override
   TakePictureScreenState createState() => TakePictureScreenState();
@@ -303,22 +322,26 @@ class TakePictureScreenState extends State<TakePictureScreen> {
       final image = await _controller.takePicture();
       if (!context.mounted) return;
 
-      final earned = await Navigator.of(context).push<int>(
-        MaterialPageRoute<int>(
+      final result = await Navigator.of(context).push<EarnResult>(
+        MaterialPageRoute<EarnResult>(
           builder: (context) => DisplayPictureScreen(
             imagePath: image.path,
             vision: widget.vision,
+            usedLabels: widget.usedLabels,
           ),
         ),
       );
       if (!context.mounted) return;
-      if (earned != null && earned > 0) {
+      if (result != null && result.earned > 0) {
         if (widget.onEarned != null) {
-          widget.onEarned!(earned);
+          widget.onEarned!(result.earned);
         } else {
           setState(() {
-            _totalPoints += earned;
+            _totalPoints += result.earned;
           });
+        }
+        if (widget.onCommittedLabels != null) {
+          widget.onCommittedLabels!(result.labels);
         }
       }
     } catch (e) {
@@ -377,11 +400,13 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 class DisplayPictureScreen extends StatefulWidget {
   final String imagePath;
   final VisionService vision;
+  final Set<String>? usedLabels;
 
   const DisplayPictureScreen({
     super.key,
     required this.imagePath,
     required this.vision,
+    this.usedLabels,
   });
 
   @override
@@ -429,6 +454,15 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
     }
   }
 
+  List<String> _currentNormalizedLabels() {
+    final set = <String>{};
+    for (final l in _result.labels) {
+      final n = l.description.trim().toLowerCase();
+      if (n.isNotEmpty) set.add(n);
+    }
+    return set.toList();
+  }
+
   Future<void> _saveToGallery() async {
     try {
       final ok = await GallerySaver.saveImage(widget.imagePath);
@@ -449,6 +483,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
     if (s.isEmpty) return 0;
     final code = s.codeUnitAt(0);
     final isDigit = code >= 48 && code <= 57;
+
     final isUpper = code >= 65 && code <= 90;
     final isLower = code >= 97 && code <= 122;
     if (isDigit) return 4;
@@ -571,7 +606,18 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          Navigator.of(context).pop<int>(earnedPoints);
+          final current = _currentNormalizedLabels();
+          final used = widget.usedLabels ?? const {};
+          final hasDup = current.any((e) => used.contains(e));
+          if (hasDup) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('登録済み')),
+            );
+            return;
+          }
+          Navigator.of(context).pop<EarnResult>(
+            EarnResult(earned: earnedPoints, labels: current),
+          );
         },
         icon: const Icon(Icons.card_giftcard),
         label: const Text('ポイント獲得'),
