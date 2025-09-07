@@ -8,6 +8,7 @@ import 'package:gallery_saver_plus/gallery_saver.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 import 'models/vision_result.dart';
 import 'vision/client_direct_vision_adapter.dart';
@@ -27,8 +28,194 @@ Future<void> main() async {
   runApp(
     MaterialApp(
       theme: ThemeData.dark(),
-      home: _BootstrapScreen(camera: firstCamera),
+      home: GameStartScreen(camera: firstCamera),
     ),
+class GameStartScreen extends StatefulWidget {
+  final CameraDescription camera;
+  const GameStartScreen({super.key, required this.camera});
+
+  @override
+  State<GameStartScreen> createState() => _GameStartScreenState();
+}
+
+class _GameStartScreenState extends State<GameStartScreen> {
+  VisionService? _vision;
+  String? _error;
+  bool _loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initVision();
+  }
+
+  Future<void> _initVision() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final callable = FirebaseFunctions.instance.httpsCallable('callExternalApi');
+      final res = await callable({});
+      final apiKey = res.data['apiKey'];
+      if (!mounted) return;
+      setState(() {
+        _vision = ClientDirectVisionAdapter(apiKey: apiKey);
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = '$e';
+      });
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final body = _loading
+        ? const CircularProgressIndicator()
+        : (_error != null
+            ? Text('初期化エラー: $_error')
+            : ElevatedButton(
+                onPressed: _vision == null
+                    ? null
+                    : () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => GamePlayScreen(
+                              camera: widget.camera,
+                              vision: _vision!,
+                            ),
+                          ),
+                        );
+                      },
+                child: const Text('START'),
+              ));
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Detection Game')),
+      body: Center(child: body),
+    );
+  }
+}
+
+class GamePlayScreen extends StatefulWidget {
+  final CameraDescription camera;
+  final VisionService vision;
+  const GamePlayScreen({super.key, required this.camera, required this.vision});
+
+  @override
+  State<GamePlayScreen> createState() => _GamePlayScreenState();
+}
+
+class _GamePlayScreenState extends State<GamePlayScreen> {
+  final _player = AudioPlayer();
+  int _sessionPoints = 0;
+  bool _timeUp = false;
+  Timer? _timer;
+  int _remaining = 10;
+
+  @override
+  void initState() {
+    super.initState();
+    _startGame();
+  }
+
+  Future<void> _startGame() async {
+    await _player.setReleaseMode(ReleaseMode.loop);
+    await _player.play(AssetSource('sounds/MusMus-BGM-125.mp3'));
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) async {
+      if (!mounted) return;
+      setState(() {
+        _remaining -= 1;
+        if (_remaining <= 0) {
+          _timeUp = true;
+          _remaining = 0;
+          t.cancel();
+        }
+      });
+      if (_timeUp) {
+        await _endGame();
+      }
+    });
+  }
+
+  Future<void> _endGame() async {
+    await _player.stop();
+    setState(() {});
+    await Future.delayed(const Duration(seconds: 2));
+    if (!mounted) return;
+    Navigator.of(context).pop();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _player.dispose();
+    super.dispose();
+  }
+
+  void _onEarned(int earned) {
+    if (_timeUp) return;
+    setState(() {
+      _sessionPoints += earned;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Game Play')),
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: TakePictureScreen(
+              camera: widget.camera,
+              vision: widget.vision,
+              captureEnabled: !_timeUp,
+              onEarned: _onEarned,
+              externalTotalPoints: _sessionPoints,
+              showExternalTotalAsTotal: true,
+            ),
+          ),
+          Positioned(
+            top: 12,
+            left: 12,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.black54,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                _timeUp ? 'Time Up!' : '残り: $_remaining s',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+          if (_timeUp)
+            Positioned.fill(
+              child: Container(
+                color: const Color(0x88000000),
+                child: Center(
+                  child: Text(
+                    '獲得: $_sessionPoints points',
+                    style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
   );
 }
 
@@ -73,10 +260,19 @@ class TakePictureScreen extends StatefulWidget {
     super.key,
     required this.camera,
     required this.vision,
+    this.captureEnabled = true,
+    this.onEarned,
+    this.externalTotalPoints,
+    this.showExternalTotalAsTotal = false,
   });
 
   final CameraDescription camera;
   final VisionService vision;
+
+  final bool captureEnabled;
+  final void Function(int earned)? onEarned;
+  final int? externalTotalPoints;
+  final bool showExternalTotalAsTotal;
 
   @override
   TakePictureScreenState createState() => TakePictureScreenState();
@@ -116,9 +312,13 @@ class TakePictureScreenState extends State<TakePictureScreen> {
       );
       if (!context.mounted) return;
       if (earned != null && earned > 0) {
-        setState(() {
-          _totalPoints += earned;
-        });
+        if (widget.onEarned != null) {
+          widget.onEarned!(earned);
+        } else {
+          setState(() {
+            _totalPoints += earned;
+          });
+        }
       }
     } catch (e) {
       if (!context.mounted) return;
@@ -152,7 +352,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        'total $_totalPoints points',
+                        'total ${widget.showExternalTotalAsTotal && widget.externalTotalPoints != null ? widget.externalTotalPoints! : _totalPoints} points',
                         style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -166,7 +366,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => _captureAndAnalyze(context),
+        onPressed: widget.captureEnabled ? () => _captureAndAnalyze(context) : null,
         child: const Icon(Icons.camera_alt),
       ),
     );
@@ -367,13 +567,6 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
               ),
             ),
         ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          Navigator.of(context).pop<int>(earnedPoints);
-        },
-        icon: const Icon(Icons.card_giftcard),
-        label: const Text('ポイント獲得'),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
