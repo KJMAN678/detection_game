@@ -82,6 +82,11 @@ $ flutter build apk --debug --dart-define=VISION_API_KEY=xxxx_your_local_key_xxx
 # 機密情報の環境変数を cloud functions に設定する
 $ firebase functions:secrets:set VISION_API_KEY --project your-project-id
 
+# GCP Secret Manager API を有効にする
+# App Engine Admin API を有効にする
+- .firebaserc のプロジェクトIDを変更する
+- google-services.json を更新する
+
 # cloud functions にデプロイする
 $ firebase deploy --only functions --project your-project-id
 ```
