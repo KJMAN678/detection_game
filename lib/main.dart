@@ -375,6 +375,13 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
         icon: const Icon(Icons.card_giftcard),
         label: const Text('ポイント獲得'),
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.of(context).pop<int>(earnedPoints);
+        },
+        icon: const Icon(Icons.card_giftcard),
+        label: const Text('ポイント獲得'),
+      ),
     );
   }
 }
