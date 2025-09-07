@@ -25,8 +25,11 @@ $ flutter pub get
 # Android スマホでflutter立ち上げ
 $ flutter run -d emulator-5554 --dart-define=VISION_API_KEY=YOUR_API_KEY --flavor debug
 
-# Android apk ビルド
-$ flutter build apk --release
+# Android apk ビルド for Firebase App Distribution
+$ flutter build apk --debug
+
+# cloud functions にデプロイする
+$ firebase deploy --only functions --project your-project-id
 
 # Android appbundle ビルド
 $ flutter build appbundle --release
