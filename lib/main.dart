@@ -332,6 +332,7 @@ class TakePictureScreenState extends State<TakePictureScreen> {
         ),
       );
       if (!context.mounted) return;
+
       if (result != null && result.earned > 0) {
         if (widget.onEarned != null) {
           widget.onEarned!(result.earned);
@@ -483,7 +484,6 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
     if (s.isEmpty) return 0;
     final code = s.codeUnitAt(0);
     final isDigit = code >= 48 && code <= 57;
-
     final isUpper = code >= 65 && code <= 90;
     final isLower = code >= 97 && code <= 122;
     if (isDigit) return 4;
@@ -571,8 +571,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                 ),
               ),
             ),
- 
-          if (!_loading && _error == null)
+           if (!_loading && _error == null)
             Positioned(
               left: 8,
               right: 8,
