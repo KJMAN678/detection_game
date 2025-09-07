@@ -285,13 +285,6 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
             icon: const Icon(Icons.save_alt),
             tooltip: 'ギャラリーに保存',
           ),
-          IconButton(
-            onPressed: () {
-              Navigator.of(context).pop<int>(earnedPoints);
-            },
-            icon: const Icon(Icons.check),
-            tooltip: 'getポイントを確定して戻る',
-          ),
         ],
       ),
       body: Stack(
@@ -342,7 +335,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                 ),
               ),
             ),
-
+ 
           if (!_loading && _error == null)
             Positioned(
               left: 8,
@@ -374,6 +367,13 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
               ),
             ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.of(context).pop<int>(earnedPoints);
+        },
+        icon: const Icon(Icons.card_giftcard),
+        label: const Text('ポイント獲得'),
       ),
     );
   }
