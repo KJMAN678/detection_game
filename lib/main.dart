@@ -29,6 +29,36 @@ Future<void> main() async {
     MaterialApp(
       theme: ThemeData.dark(),
       home: GameStartScreen(camera: firstCamera),
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case '/gamePlay':
+            final args = settings.arguments as Map<String, Object?>?;
+            final camera = args?['camera'] as CameraDescription?;
+            final vision = args?['vision'] as VisionService?;
+            if (camera == null || vision == null) {
+              throw ArgumentError('Missing camera or vision for /gamePlay');
+            }
+            return MaterialPageRoute(
+              builder: (_) => GamePlayScreen(camera: camera, vision: vision),
+            );
+          case '/displayPicture':
+            final args = settings.arguments as Map<String, Object?>?;
+            final imagePath = args?['imagePath'] as String?;
+            final vision = args?['vision'] as VisionService?;
+            final usedLabels = args?['usedLabels'] as Set<String>?;
+            if (imagePath == null || vision == null) {
+              throw ArgumentError('Missing imagePath or vision for /displayPicture');
+            }
+            return MaterialPageRoute<EarnResult>(
+              builder: (_) => DisplayPictureScreen(
+                imagePath: imagePath,
+                vision: vision,
+                usedLabels: usedLabels,
+              ),
+            );
+        }
+        return null;
+      },
     ),
   );
 }
@@ -88,13 +118,12 @@ class _GameStartScreenState extends State<GameStartScreen> {
                 onPressed: _vision == null
                     ? null
                     : () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => GamePlayScreen(
-                              camera: widget.camera,
-                              vision: _vision!,
-                            ),
-                          ),
+                        Navigator.of(context).pushNamed(
+                          '/gamePlay',
+                          arguments: {
+                            'camera': widget.camera,
+                            'vision': _vision!,
+                          },
                         );
                       },
                 child: const Text('START'),
@@ -322,14 +351,13 @@ class TakePictureScreenState extends State<TakePictureScreen> {
       final image = await _controller.takePicture();
       if (!context.mounted) return;
 
-      final result = await Navigator.of(context).push<EarnResult>(
-        MaterialPageRoute<EarnResult>(
-          builder: (context) => DisplayPictureScreen(
-            imagePath: image.path,
-            vision: widget.vision,
-            usedLabels: widget.usedLabels,
-          ),
-        ),
+      final result = await Navigator.of(context).pushNamed<EarnResult>(
+        '/displayPicture',
+        arguments: {
+          'imagePath': image.path,
+          'vision': widget.vision,
+          'usedLabels': widget.usedLabels,
+        },
       );
       if (!context.mounted) return;
 
