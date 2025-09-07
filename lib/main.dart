@@ -30,6 +30,9 @@ Future<void> main() async {
       theme: ThemeData.dark(),
       home: GameStartScreen(camera: firstCamera),
     ),
+  );
+}
+
 class GameStartScreen extends StatefulWidget {
   final CameraDescription camera;
   const GameStartScreen({super.key, required this.camera});
@@ -216,8 +219,6 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
   }
 }
 
-  );
-}
 
 class _BootstrapScreen extends StatelessWidget {
   final CameraDescription camera;
