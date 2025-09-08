@@ -153,3 +153,13 @@ $ flutter build appbundle --release --verbose
 ```
 
 - Google Console にリリースした場合は、Google Console の証明書 SHA256 を取得し、FirebaseのAppCheckに貼り付け、google-service.json を更新する必要がある。
+  - [Android証明書フィンガープリントを取得](https://dev.adjust.com/ja/sdk/android/integrations/retrieve-certificate-fingerprints/#from-google-play-console)
+  - [stack-overflow](https://stackoverflow.com/questions/79715471/i-am-unable-to-test-my-app-in-closed-testing-because-of-app-check-from-firebase?utm_source=chatgpt.com)
+    - 問題は、Play ストアに公開するときに、Google が独自の証明書を使用して aab に署名するため、Firebase のプロジェクト設定/App Check で証明書 SHA-256 が無効になることでした。
+    - Play Console の整合性タブから SHA-256 を Firebase プロジェクトと App Check に追加した後、クローズド テストでアプリをテストできます。
+
+- [stack-overflow](https://stackoverflow.com/questions/66653074/how-to-fix-apk-is-using-camera-permissions-that-require-a-privacy-policy-error?utm_source=chatgpt.com)
+  - Play コンソールで「APK はプライバシー ポリシーを必要とするカメラ権限を使用しています」というエラーを修正するにはどうすればよいでしょうか?
+  - アプリの manifest.xml にはデバイスの情報にアクセスする権限がありますが、Play ストアに送信する際にプライバシー ポリシー リンクがありません。そのため、この警告が表示されます。
+- [審査のためにアプリを準備する プライバシーポリシー](https://support.google.com/googleplay/android-developer/answer/9859455?hl=ja#:~:text=%E3%82%92%E6%8F%90%E4%BE%9B%E3%81%99%E3%82%8B-,%E3%83%97%E3%83%A9%E3%82%A4%E3%83%90%E3%82%B7%E3%83%BC%20%E3%83%9D%E3%83%AA%E3%82%B7%E3%83%BC,-%E3%82%A2%E3%83%97%E3%83%AA%E3%81%AE%E3%82%B9%E3%83%88%E3%82%A2)
+- [Notionで用意したプライバシーポリシー](https://inky-tea-139.notion.site/26829a2fd70e809993c9d51c7abad7a2?pvs=73)
