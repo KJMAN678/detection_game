@@ -18,24 +18,25 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
   bool _isLoading = false;
 
   Future<void> _giveConsent() async {
+    if (!mounted) return;
+    
     setState(() {
       _isLoading = true;
     });
     
     try {
       await ConsentManager.giveConsent();
-      widget.onConsentGiven();
-    } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('エラーが発生しました: $e')),
-        );
+        widget.onConsentGiven();
       }
-    } finally {
+    } catch (e) {
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('エラーが発生しました: $e')),
+        );
       }
     }
   }
