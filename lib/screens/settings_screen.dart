@@ -44,9 +44,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         _isLoading = false;
       });
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('設定の読み込みに失敗しました: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('設定の読み込みに失敗しました: $e')));
       }
     }
   }
@@ -74,23 +74,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
       try {
         await ConsentManager.withdrawConsent();
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('同意を撤回しました')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('同意を撤回しました')));
           Navigator.of(context).popUntil((route) => route.isFirst);
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('撤回に失敗しました: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('撤回に失敗しました: $e')));
         }
       }
     }
   }
 
   Future<void> _openPrivacyPolicy() async {
-    const url = 'https://inky-tea-139.notion.site/26829a2fd70e809993c9d51c7abad7a2?pvs=73';
+    const url =
+        'https://inky-tea-139.notion.site/26829a2fd70e809993c9d51c7abad7a2?pvs=73';
     if (await canLaunchUrl(Uri.parse(url))) {
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     }
@@ -108,7 +109,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       path: email,
       query: 'subject=${Uri.encodeComponent(subject)}',
     );
-    
+
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     }
@@ -148,8 +149,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
-        appBar: AppBar(title: Text('設定')),
+      return Scaffold(
+        appBar: AppBar(title: const Text('設定')),
         body: Center(child: CircularProgressIndicator()),
       );
     }
@@ -248,10 +249,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Detection Game',
-                    style: TextStyle(fontSize: 16),
-                  ),
+                  const Text('Detection Game', style: TextStyle(fontSize: 16)),
                   const SizedBox(height: 4),
                   Text(
                     'プライバシーポリシー準拠版',
