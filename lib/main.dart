@@ -69,13 +69,7 @@ class _AppInitializerState extends State<AppInitializer> {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (_) => PrivacyConsentScreen(
-            onConsentGiven: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (_) => GameStartScreen(camera: widget.camera),
-                ),
-              );
-            },
+            camera: widget.camera,
           ),
         ),
       );

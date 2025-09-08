@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:camera/camera.dart';
 import '../services/consent_manager.dart';
+import '../main.dart';
 
 class PrivacyConsentScreen extends StatefulWidget {
-  final VoidCallback onConsentGiven;
+  final CameraDescription camera;
   
   const PrivacyConsentScreen({
     super.key,
-    required this.onConsentGiven,
+    required this.camera,
   });
 
   @override
@@ -27,7 +29,11 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
     try {
       await ConsentManager.giveConsent();
       if (mounted) {
-        widget.onConsentGiven();
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => GameStartScreen(camera: widget.camera),
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
