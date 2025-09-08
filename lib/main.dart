@@ -13,6 +13,11 @@ import 'package:audioplayers/audioplayers.dart';
 import 'models/vision_result.dart';
 import 'vision/client_direct_vision_adapter.dart';
 import 'vision/vision_service.dart';
+import 'services/consent_manager.dart';
+import 'services/permission_manager.dart';
+import 'screens/privacy_consent_screen.dart';
+import 'screens/settings_screen.dart';
+import 'widgets/data_transmission_dialog.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,9 +33,61 @@ Future<void> main() async {
   runApp(
     MaterialApp(
       theme: ThemeData.dark(),
-      home: GameStartScreen(camera: firstCamera),
+      home: AppInitializer(camera: firstCamera),
     ),
   );
+}
+
+class AppInitializer extends StatefulWidget {
+  final CameraDescription camera;
+  
+  const AppInitializer({super.key, required this.camera});
+
+  @override
+  State<AppInitializer> createState() => _AppInitializerState();
+}
+
+class _AppInitializerState extends State<AppInitializer> {
+  @override
+  void initState() {
+    super.initState();
+    _checkConsentAndNavigate();
+  }
+
+  Future<void> _checkConsentAndNavigate() async {
+    final hasConsent = await ConsentManager.hasGivenConsent();
+    
+    if (!mounted) return;
+    
+    if (hasConsent) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => GameStartScreen(camera: widget.camera),
+        ),
+      );
+    } else {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => PrivacyConsentScreen(
+            onConsentGiven: () {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (_) => GameStartScreen(camera: widget.camera),
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      body: Center(child: CircularProgressIndicator()),
+    );
+  }
 }
 
 class GameStartScreen extends StatefulWidget {
@@ -101,7 +158,21 @@ class _GameStartScreenState extends State<GameStartScreen> {
               ));
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Detection Game')),
+      appBar: AppBar(
+        title: const Text('Detection Game'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const SettingsScreen(),
+                ),
+              );
+            },
+          ),
+        ],
+      ),
       body: Center(child: body),
     );
   }
@@ -307,7 +378,20 @@ class TakePictureScreenState extends State<TakePictureScreen> {
   void initState() {
     super.initState();
     _controller = CameraController(widget.camera, ResolutionPreset.medium);
-    _initializeControllerFuture = _controller.initialize();
+    _initializeControllerFuture = _initializeCamera();
+  }
+
+  Future<void> _initializeCamera() async {
+    final hasPermission = await PermissionManager.hasCameraPermission();
+    
+    if (!hasPermission) {
+      final granted = await PermissionManager.requestCameraPermission();
+      if (!granted) {
+        throw Exception('カメラ権限が必要です');
+      }
+    }
+    
+    await _controller.initialize();
   }
 
   @override
@@ -426,6 +510,19 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
   }
 
   Future<void> _analyze() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => DataTransmissionDialog(
+        onConfirm: () => Navigator.of(context).pop(true),
+        onCancel: () => Navigator.of(context).pop(false),
+      ),
+    );
+
+    if (confirmed != true) {
+      Navigator.of(context).pop();
+      return;
+    }
+
     setState(() {
       _loading = true;
       _error = null;
