@@ -151,3 +151,5 @@ $ flutter build appbundle --release
 # ログを詳細に出力するビルド
 $ flutter build appbundle --release --verbose
 ```
+
+- Google Console にリリースした場合は、Google Console の証明書 SHA256 を取得し、FirebaseのAppCheckに貼り付け、google-service.json を更新する必要がある。
