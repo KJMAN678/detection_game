@@ -45,6 +45,8 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>物体検出ゲームでスコアを取得するために、カメラを使用します。撮影された画像はGoogle Cloud Vision APIに送信され、物体識別処理に使用されます。</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>解析結果の画像をフォトライブラリに保存するために使用します。</string>
 	<key>NSPhotoLibraryUsageDescription</key>
