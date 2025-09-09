@@ -133,6 +133,35 @@ class _GameStartScreenState extends State<GameStartScreen> {
     }
   }
 
+  Future<void> _proceedToGame() async {
+    if (_vision == null) return;
+    final hasTxConsent = await ConsentManager.hasGivenDataTransmissionConsent();
+    if (!mounted) return;
+    if (!hasTxConsent) {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (context) => DataTransmissionDialog(
+          onConfirm: () => Navigator.of(context).pop(true),
+          onCancel: () => Navigator.of(context).pop(false),
+        ),
+      );
+      if (ok == true) {
+        await ConsentManager.giveDataTransmissionConsent();
+      } else {
+        return;
+      }
+    }
+    if (!mounted) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => GamePlayScreen(
+          camera: widget.camera,
+          vision: _vision!,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final body = _loading
@@ -140,18 +169,7 @@ class _GameStartScreenState extends State<GameStartScreen> {
         : (_error != null
               ? Text('初期化エラー: $_error')
               : ElevatedButton(
-                  onPressed: _vision == null
-                      ? null
-                      : () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) => GamePlayScreen(
-                                camera: widget.camera,
-                                vision: _vision!,
-                              ),
-                            ),
-                          );
-                        },
+                  onPressed: _vision == null ? null : _proceedToGame,
                   child: const Text('START'),
                 ));
 
@@ -539,17 +557,22 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
   }
 
   Future<void> _analyze() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => DataTransmissionDialog(
-        onConfirm: () => Navigator.of(context).pop(true),
-        onCancel: () => Navigator.of(context).pop(false),
-      ),
-    );
-
-    if (confirmed != true) {
-      Navigator.of(context).pop();
-      return;
+    // データ送信同意（ゲーム開始前に取得済みならダイアログをスキップ）
+    final hasTxConsent = await ConsentManager.hasGivenDataTransmissionConsent();
+    if (!hasTxConsent) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => DataTransmissionDialog(
+          onConfirm: () => Navigator.of(context).pop(true),
+          onCancel: () => Navigator.of(context).pop(false),
+        ),
+      );
+      if (confirmed == true) {
+        await ConsentManager.giveDataTransmissionConsent();
+      } else {
+        if (mounted) Navigator.of(context).pop();
+        return;
+      }
     }
 
     setState(() {

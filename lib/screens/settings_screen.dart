@@ -13,6 +13,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   bool _hasConsent = false;
+  bool _hasDataTxConsent = false;
   PermissionStatus _cameraPermissionStatus = PermissionStatus.denied;
   DateTime? _consentTimestamp;
   bool _isLoading = true;
@@ -23,6 +24,42 @@ class _SettingsScreenState extends State<SettingsScreen> {
     _loadStatus();
   }
 
+  Future<void> _withdrawDataTxConsent() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('データ送信同意の撤回'),
+        content: const Text('Cloud Vision API へのデータ送信同意を撤回しますか？\nゲーム開始時に再度確認します。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('キャンセル'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('撤回する'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        await ConsentManager.withdrawDataTransmissionConsent();
+        await _loadStatus();
+        if (mounted) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(const SnackBar(content: Text('データ送信同意を撤回しました')));
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context)
+              .showSnackBar(SnackBar(content: Text('撤回に失敗しました: $e')));
+        }
+      }
+    }
+  }
+
   Future<void> _loadStatus() async {
     setState(() {
       _isLoading = true;
@@ -30,11 +67,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
     try {
       final hasConsent = await ConsentManager.hasGivenConsent();
+      final hasDataTxConsent =
+          await ConsentManager.hasGivenDataTransmissionConsent();
       final cameraStatus = await PermissionManager.getCameraPermissionStatus();
       final timestamp = await ConsentManager.getConsentTimestamp();
 
       setState(() {
         _hasConsent = hasConsent;
+        _hasDataTxConsent = hasDataTxConsent;
         _cameraPermissionStatus = cameraStatus;
         _consentTimestamp = timestamp;
         _isLoading = false;
@@ -176,6 +216,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     _hasConsent ? '同意済み' : '未同意',
                     _hasConsent ? Colors.green : Colors.red,
                   ),
+                  const SizedBox(height: 8),
+                  _buildStatusRow(
+                    'データ送信同意（Vision API）',
+                    _hasDataTxConsent ? '同意済み' : '未同意',
+                    _hasDataTxConsent ? Colors.green : Colors.red,
+                  ),
                   if (_consentTimestamp != null) ...[
                     const SizedBox(height: 8),
                     Text(
@@ -218,6 +264,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     title: const Text('同意を撤回する'),
                     subtitle: const Text('プライバシーポリシーへの同意を取り消します'),
                     onTap: _withdrawConsent,
+                  ),
+                ],
+                if (_hasDataTxConsent) ...[
+                  const Divider(height: 1),
+                  ListTile(
+                    leading: const Icon(Icons.cloud_off, color: Colors.red),
+                    title: const Text('データ送信同意を撤回する'),
+                    subtitle: const Text('Cloud Vision API への送信同意を取り消します'),
+                    onTap: _withdrawDataTxConsent,
                   ),
                 ],
               ],
