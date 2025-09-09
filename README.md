@@ -167,7 +167,7 @@ $ flutter build appbundle --release --verbose
 
 ```sh
 # デバッグコード採取用のログ収集コマンド
-adb logcat | grep -i "secret into the allow list in the Firebase Console for your project" 
+$ adb logcat | grep -i "secret into the allow list in the Firebase Console for your project" 
 ```
 
 
