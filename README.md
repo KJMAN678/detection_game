@@ -163,3 +163,11 @@ $ flutter build appbundle --release --verbose
   - アプリの manifest.xml にはデバイスの情報にアクセスする権限がありますが、Play ストアに送信する際にプライバシー ポリシー リンクがありません。そのため、この警告が表示されます。
 - [審査のためにアプリを準備する プライバシーポリシー](https://support.google.com/googleplay/android-developer/answer/9859455?hl=ja#:~:text=%E3%82%92%E6%8F%90%E4%BE%9B%E3%81%99%E3%82%8B-,%E3%83%97%E3%83%A9%E3%82%A4%E3%83%90%E3%82%B7%E3%83%BC%20%E3%83%9D%E3%83%AA%E3%82%B7%E3%83%BC,-%E3%82%A2%E3%83%97%E3%83%AA%E3%81%AE%E3%82%B9%E3%83%88%E3%82%A2)
 - [Notionで用意したプライバシーポリシー](https://inky-tea-139.notion.site/26829a2fd70e809993c9d51c7abad7a2?pvs=73)
+
+
+```sh
+# デバッグコード採取用のログ収集コマンド
+adb logcat | grep -i "secret into the allow list in the Firebase Console for your project" 
+```
+
+
