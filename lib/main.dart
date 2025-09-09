@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
+import 'dart:ui' as ui;
 
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
@@ -40,7 +41,7 @@ Future<void> main() async {
 
 class AppInitializer extends StatefulWidget {
   final CameraDescription camera;
-  
+
   const AppInitializer({super.key, required this.camera});
 
   @override
@@ -56,9 +57,9 @@ class _AppInitializerState extends State<AppInitializer> {
 
   Future<void> _checkConsentAndNavigate() async {
     final hasConsent = await ConsentManager.hasGivenConsent();
-    
+
     if (!mounted) return;
-    
+
     if (hasConsent) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
@@ -68,9 +69,7 @@ class _AppInitializerState extends State<AppInitializer> {
     } else {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
-          builder: (_) => PrivacyConsentScreen(
-            camera: widget.camera,
-          ),
+          builder: (_) => PrivacyConsentScreen(camera: widget.camera),
         ),
       );
     }
@@ -78,9 +77,7 @@ class _AppInitializerState extends State<AppInitializer> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
-    );
+    return const Scaffold(body: Center(child: CircularProgressIndicator()));
   }
 }
 
@@ -109,9 +106,16 @@ class _GameStartScreenState extends State<GameStartScreen> {
       _error = null;
     });
     try {
-      final callable = FirebaseFunctions.instance.httpsCallable('callExternalApi');
+      final callable = FirebaseFunctions.instance.httpsCallable(
+        'callExternalApi',
+      );
       final res = await callable({});
       final apiKey = res.data['apiKey'];
+      if (apiKey == null || (apiKey is String && apiKey.trim().isEmpty)) {
+        throw Exception(
+          'VISION_API_KEY が未設定、または取得できませんでした。Cloud Functions のシークレット設定を確認してください。',
+        );
+      }
       if (!mounted) return;
       setState(() {
         _vision = ClientDirectVisionAdapter(apiKey: apiKey);
@@ -134,22 +138,22 @@ class _GameStartScreenState extends State<GameStartScreen> {
     final body = _loading
         ? const CircularProgressIndicator()
         : (_error != null
-            ? Text('初期化エラー: $_error')
-            : ElevatedButton(
-                onPressed: _vision == null
-                    ? null
-                    : () {
-                        Navigator.of(context).push(
-                          MaterialPageRoute(
-                            builder: (_) => GamePlayScreen(
-                              camera: widget.camera,
-                              vision: _vision!,
+              ? Text('初期化エラー: $_error')
+              : ElevatedButton(
+                  onPressed: _vision == null
+                      ? null
+                      : () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => GamePlayScreen(
+                                camera: widget.camera,
+                                vision: _vision!,
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                child: const Text('START'),
-              ));
+                          );
+                        },
+                  child: const Text('START'),
+                ));
 
     return Scaffold(
       appBar: AppBar(
@@ -158,11 +162,9 @@ class _GameStartScreenState extends State<GameStartScreen> {
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const SettingsScreen(),
-                ),
-              );
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const SettingsScreen()));
             },
           ),
         ],
@@ -178,8 +180,6 @@ class EarnResult {
   EarnResult({required this.earned, required this.labels});
 }
 
-
-
 class GamePlayScreen extends StatefulWidget {
   final CameraDescription camera;
   final VisionService vision;
@@ -188,7 +188,6 @@ class GamePlayScreen extends StatefulWidget {
   @override
   State<GamePlayScreen> createState() => _GamePlayScreenState();
 }
-
 
 class _GamePlayScreenState extends State<GamePlayScreen> {
   final _player = AudioPlayer();
@@ -276,7 +275,10 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
               ),
               child: Text(
                 _timeUp ? 'Time Up!' : '残り: $_remaining s',
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
@@ -287,7 +289,11 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
                 child: Center(
                   child: Text(
                     '獲得: $_sessionPoints points',
-                    style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
@@ -297,7 +303,6 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
     );
   }
 }
-
 
 class _BootstrapScreen extends StatelessWidget {
   final CameraDescription camera;
@@ -310,6 +315,11 @@ class _BootstrapScreen extends StatelessWidget {
     );
     final res = await callable({});
     final apiKey = res.data['apiKey'];
+    if (apiKey == null || (apiKey is String && apiKey.trim().isEmpty)) {
+      throw Exception(
+        'VISION_API_KEY が未設定、または取得できませんでした。Cloud Functions のシークレット設定を確認してください。',
+      );
+    }
     return ClientDirectVisionAdapter(apiKey: apiKey);
   }
 
@@ -377,14 +387,14 @@ class TakePictureScreenState extends State<TakePictureScreen> {
 
   Future<void> _initializeCamera() async {
     final hasPermission = await PermissionManager.hasCameraPermission();
-    
+
     if (!hasPermission) {
       final granted = await PermissionManager.requestCameraPermission();
       if (!granted) {
         throw Exception('カメラ権限が必要です');
       }
     }
-    
+
     await _controller.initialize();
   }
 
@@ -449,14 +459,21 @@ class TakePictureScreenState extends State<TakePictureScreen> {
                   child: Align(
                     alignment: Alignment.bottomLeft,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black54,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
                         'total ${widget.showExternalTotalAsTotal && widget.externalTotalPoints != null ? widget.externalTotalPoints! : _totalPoints} points',
-                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
@@ -469,7 +486,9 @@ class TakePictureScreenState extends State<TakePictureScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: widget.captureEnabled ? () => _captureAndAnalyze(context) : null,
+        onPressed: widget.captureEnabled
+            ? () => _captureAndAnalyze(context)
+            : null,
         child: const Icon(Icons.camera_alt),
       ),
     );
@@ -496,11 +515,27 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
   VisionResult _result = VisionResult.empty;
   bool _loading = false;
   String? _error;
+  int? _imgW;
+  int? _imgH;
 
   @override
   void initState() {
     super.initState();
-    _analyze();
+    _loadImageDimension().then((_) => _analyze());
+  }
+
+  Future<void> _loadImageDimension() async {
+    try {
+      final bytes = await File(widget.imagePath).readAsBytes();
+      final codec = await ui.instantiateImageCodec(bytes);
+      final frame = await codec.getNextFrame();
+      setState(() {
+        _imgW = frame.image.width;
+        _imgH = frame.image.height;
+      });
+    } catch (_) {
+      // 無視して続行（オーバーレイは全画面に対して描画される）
+    }
   }
 
   Future<void> _analyze() async {
@@ -535,6 +570,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
       // Simple log
       // ignore: avoid_print
       print('analyze took ${sw.elapsedMilliseconds} ms');
+      print('objects=${res.objects.length}, labels=${res.labels.length}');
     } catch (e) {
       setState(() {
         _error = '$e';
@@ -601,7 +637,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final imageWidget = Image.file(File(widget.imagePath));
+    final imageWidget = Image.file(File(widget.imagePath), fit: BoxFit.contain);
     final earnedPoints = _totalScore(_result.labels);
     return Scaffold(
       appBar: AppBar(
@@ -614,85 +650,119 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
           ),
         ],
       ),
-      body: Stack(
-        children: [
-          Positioned.fill(child: imageWidget),
-          if (_loading)
-            const Positioned.fill(
-              child: ColoredBox(
-                color: Color(0x66000000),
-                child: Center(child: CircularProgressIndicator()),
-              ),
-            ),
-          if (_error != null)
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                color: Colors.redAccent,
-                padding: const EdgeInsets.all(8),
-                child: Text(
-                  _error!,
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ),
-            ),
-          if (!_loading && _error == null)
-            Positioned.fill(
-              child: CustomPaint(painter: _OverlayPainter(result: _result)),
-            ),
-          if (!_loading && _error == null)
-            Positioned(
-              left: 8,
-              right: 8,
-              bottom: 56,
-              child: Align(
-                alignment: Alignment.bottomLeft,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.black54,
-                    borderRadius: BorderRadius.circular(12),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          final hasDim =
+              _imgW != null && _imgH != null && _imgW! > 0 && _imgH! > 0;
+          final aspect = hasDim ? _imgW! / _imgH! : null;
+          final overlay = CustomPaint(
+            painter: _OverlayPainter(result: _result),
+          );
+          final imageStack = hasDim
+              ? Center(
+                  child: AspectRatio(
+                    aspectRatio: aspect!,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        imageWidget,
+                        if (!_loading && _error == null) overlay,
+                      ],
+                    ),
                   ),
-                  child: Text(
-                    'get ${_totalScore(_result.labels)} points',
-                    style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                )
+              : Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    imageWidget,
+                    if (!_loading && _error == null) overlay,
+                  ],
+                );
+
+          return Stack(
+            children: [
+              Positioned.fill(child: imageStack),
+              if (_loading)
+                const Positioned.fill(
+                  child: ColoredBox(
+                    color: Color(0x66000000),
+                    child: Center(child: CircularProgressIndicator()),
                   ),
                 ),
-              ),
-            ),
-           if (!_loading && _error == null)
-            Positioned(
-              left: 8,
-              right: 8,
-              bottom: 8,
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: _result.labels
-                      .map(
-                        (l) => Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 4),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.black54,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            l.description,
-                            style: const TextStyle(color: Colors.white),
-                          ),
+              if (_error != null)
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    color: Colors.redAccent,
+                    padding: const EdgeInsets.all(8),
+                    child: Text(
+                      _error!,
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ),
+              if (!_loading && _error == null)
+                Positioned(
+                  left: 8,
+                  right: 8,
+                  bottom: 56,
+                  child: Align(
+                    alignment: Alignment.bottomLeft,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black54,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'get ${_totalScore(_result.labels)} points',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
                         ),
-                      )
-                      .toList(),
+                      ),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-        ],
+              if (!_loading && _error == null)
+                Positioned(
+                  left: 8,
+                  right: 8,
+                  bottom: 8,
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: _result.labels
+                          .map(
+                            (l) => Container(
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.black54,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                l.description,
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            ),
+                          )
+                          .toList(),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
@@ -700,14 +770,14 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
           final used = widget.usedLabels ?? const {};
           final hasDup = current.any((e) => used.contains(e));
           if (hasDup) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('登録済み')),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('登録済み')));
             return;
           }
-          Navigator.of(context).pop<EarnResult>(
-            EarnResult(earned: earnedPoints, labels: current),
-          );
+          Navigator.of(
+            context,
+          ).pop<EarnResult>(EarnResult(earned: earnedPoints, labels: current));
         },
         icon: const Icon(Icons.card_giftcard),
         label: const Text('ポイント獲得'),
