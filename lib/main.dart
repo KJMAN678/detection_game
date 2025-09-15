@@ -25,7 +25,7 @@ Future<void> main() async {
   await Firebase.initializeApp();
   await FirebaseAppCheck.instance.activate(
     webProvider: ReCaptchaV3Provider('recaptcha-v3-site-key'),
-    androidProvider: AndroidProvider.debug,
+    androidProvider: AndroidProvider.playIntegrity,
   );
 
   final cameras = await availableCameras();
@@ -47,9 +47,7 @@ Future<void> main() async {
               builder: (_) => PrivacyConsentScreen(camera: camera),
             );
           case '/settings':
-            return MaterialPageRoute(
-              builder: (_) => const SettingsScreen(),
-            );
+            return MaterialPageRoute(builder: (_) => const SettingsScreen());
           case '/gameStart':
             final args = settings.arguments as Map<String, Object?>?;
             final camera = args?['camera'] as CameraDescription?;
@@ -64,7 +62,9 @@ Future<void> main() async {
             final camera = args?['camera'] as CameraDescription?;
             final vision = args?['vision'] as VisionService?;
             if (camera == null || vision == null) {
-              throw ArgumentError('camera and vision are required for /gamePlay');
+              throw ArgumentError(
+                'camera and vision are required for /gamePlay',
+              );
             }
             return MaterialPageRoute(
               builder: (_) => GamePlayScreen(camera: camera, vision: vision),
@@ -75,7 +75,9 @@ Future<void> main() async {
             final vision = args?['vision'] as VisionService?;
             final usedLabels = args?['usedLabels'] as Set<String>?;
             if (imagePath == null || vision == null) {
-              throw ArgumentError('imagePath and vision are required for /displayPicture');
+              throw ArgumentError(
+                'imagePath and vision are required for /displayPicture',
+              );
             }
             return MaterialPageRoute<EarnResult>(
               builder: (_) => DisplayPictureScreen(
@@ -204,10 +206,7 @@ class _GameStartScreenState extends State<GameStartScreen> {
     if (!mounted) return;
     Navigator.of(context).pushNamed(
       '/gamePlay',
-      arguments: {
-        'camera': widget.camera,
-        'vision': _vision!,
-      },
+      arguments: {'camera': widget.camera, 'vision': _vision!},
     );
   }
 
