@@ -151,6 +151,13 @@ $ flutter build appbundle --release
 # ログを詳細に出力するビルド
 $ flutter build appbundle --release --verbose
 ```
+- 内部テストリリースでアプリを使えるようにするには、下記の部分を `AndroidProvider.playIntegrity` に変更する必要あり
+- `AndroidProvider.debug` ではNG
+```dart
+await FirebaseAppCheck.instance.activate(
+  androidProvider: AndroidProvider.playIntegrity,
+);
+```
 
 - Google Console にリリースした場合は、Google Console の証明書 SHA256 を取得し、FirebaseのAppCheckに貼り付け、google-service.json を更新する必要がある。
   - [Android証明書フィンガープリントを取得](https://dev.adjust.com/ja/sdk/android/integrations/retrieve-certificate-fingerprints/#from-google-play-console)
@@ -169,5 +176,4 @@ $ flutter build appbundle --release --verbose
 # デバッグコード採取用のログ収集コマンド
 $ adb logcat | grep -i "secret into the allow list in the Firebase Console for your project" 
 ```
-
 
