@@ -35,6 +35,60 @@ Future<void> main() async {
     MaterialApp(
       theme: ThemeData.dark(),
       home: AppInitializer(camera: firstCamera),
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case '/privacyConsent':
+            final args = settings.arguments as Map<String, Object?>?;
+            final camera = args?['camera'] as CameraDescription?;
+            if (camera == null) {
+              throw ArgumentError('camera is required for /privacyConsent');
+            }
+            return MaterialPageRoute(
+              builder: (_) => PrivacyConsentScreen(camera: camera),
+            );
+          case '/settings':
+            return MaterialPageRoute(builder: (_) => const SettingsScreen());
+          case '/gameStart':
+            final args = settings.arguments as Map<String, Object?>?;
+            final camera = args?['camera'] as CameraDescription?;
+            if (camera == null) {
+              throw ArgumentError('camera is required for /gameStart');
+            }
+            return MaterialPageRoute(
+              builder: (_) => GameStartScreen(camera: camera),
+            );
+          case '/gamePlay':
+            final args = settings.arguments as Map<String, Object?>?;
+            final camera = args?['camera'] as CameraDescription?;
+            final vision = args?['vision'] as VisionService?;
+            if (camera == null || vision == null) {
+              throw ArgumentError(
+                'camera and vision are required for /gamePlay',
+              );
+            }
+            return MaterialPageRoute(
+              builder: (_) => GamePlayScreen(camera: camera, vision: vision),
+            );
+          case '/displayPicture':
+            final args = settings.arguments as Map<String, Object?>?;
+            final imagePath = args?['imagePath'] as String?;
+            final vision = args?['vision'] as VisionService?;
+            final usedLabels = args?['usedLabels'] as Set<String>?;
+            if (imagePath == null || vision == null) {
+              throw ArgumentError(
+                'imagePath and vision are required for /displayPicture',
+              );
+            }
+            return MaterialPageRoute<EarnResult>(
+              builder: (_) => DisplayPictureScreen(
+                imagePath: imagePath,
+                vision: vision,
+                usedLabels: usedLabels,
+              ),
+            );
+        }
+        return null;
+      },
     ),
   );
 }
@@ -61,16 +115,14 @@ class _AppInitializerState extends State<AppInitializer> {
     if (!mounted) return;
 
     if (hasConsent) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => GameStartScreen(camera: widget.camera),
-        ),
+      Navigator.of(context).pushReplacementNamed(
+        '/gameStart',
+        arguments: {'camera': widget.camera},
       );
     } else {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => PrivacyConsentScreen(camera: widget.camera),
-        ),
+      Navigator.of(context).pushReplacementNamed(
+        '/privacyConsent',
+        arguments: {'camera': widget.camera},
       );
     }
   }
@@ -152,10 +204,9 @@ class _GameStartScreenState extends State<GameStartScreen> {
       }
     }
     if (!mounted) return;
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => GamePlayScreen(camera: widget.camera, vision: _vision!),
-      ),
+    Navigator.of(context).pushNamed(
+      '/gamePlay',
+      arguments: {'camera': widget.camera, 'vision': _vision!},
     );
   }
 
@@ -177,9 +228,7 @@ class _GameStartScreenState extends State<GameStartScreen> {
           IconButton(
             icon: const Icon(Icons.settings),
             onPressed: () {
-              Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const SettingsScreen()));
+              Navigator.of(context).pushNamed('/settings');
             },
           ),
         ],
@@ -425,14 +474,13 @@ class TakePictureScreenState extends State<TakePictureScreen> {
       final image = await _controller.takePicture();
       if (!context.mounted) return;
 
-      final result = await Navigator.of(context).push<EarnResult>(
-        MaterialPageRoute<EarnResult>(
-          builder: (context) => DisplayPictureScreen(
-            imagePath: image.path,
-            vision: widget.vision,
-            usedLabels: widget.usedLabels,
-          ),
-        ),
+      final result = await Navigator.of(context).pushNamed<EarnResult>(
+        '/displayPicture',
+        arguments: {
+          'imagePath': image.path,
+          'vision': widget.vision,
+          'usedLabels': widget.usedLabels,
+        },
       );
       if (!context.mounted) return;
 
