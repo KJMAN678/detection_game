@@ -24,6 +24,10 @@ class ClientDirectVisionAdapter implements VisionService {
     required List<VisionMode> modes,
   }) async {
     final processed = _compress(imageBytes);
+    // 圧縮後の画像サイズ（正規化に利用）
+    final processedImage = img.decodeImage(processed);
+    final imgW = processedImage?.width;
+    final imgH = processedImage?.height;
     final requests = <Map<String, dynamic>>[];
     if (modes.contains(VisionMode.objects)) {
       requests.add({'type': 'OBJECT_LOCALIZATION'});
@@ -32,14 +36,16 @@ class ClientDirectVisionAdapter implements VisionService {
       requests.add({'type': 'LABEL_DETECTION', 'maxResults': 10});
     }
 
-    final uri = Uri.parse('https://vision.googleapis.com/v1/images:annotate?key=$apiKey');
+    final uri = Uri.parse(
+      'https://vision.googleapis.com/v1/images:annotate?key=$apiKey',
+    );
     final body = jsonEncode({
       'requests': [
         {
           'image': {'content': base64Encode(processed)},
           'features': requests,
-        }
-      ]
+        },
+      ],
     });
 
     final res = await http.post(
@@ -49,25 +55,26 @@ class ClientDirectVisionAdapter implements VisionService {
     );
 
     if (res.statusCode != 200) {
-      return VisionResult.empty;
+      throw Exception('Vision API error: HTTP ${res.statusCode} - ${res.body}');
     }
 
     final decoded = jsonDecode(res.body) as Map<String, dynamic>;
     final responses = decoded['responses'] as List<dynamic>? ?? [];
     if (responses.isEmpty) {
-      return VisionResult.empty;
+      throw Exception('Vision API returned empty responses');
     }
     final first = responses.first as Map<String, dynamic>;
 
     final objects = <VisionObject>[];
     final labels = <VisionLabel>[];
 
-    final localizedObjectAnnotations = first['localizedObjectAnnotations'] as List<dynamic>? ?? [];
+    final localizedObjectAnnotations =
+        first['localizedObjectAnnotations'] as List<dynamic>? ?? [];
     for (final o in localizedObjectAnnotations) {
       final name = (o['name'] as String?) ?? '';
       final score = (o['score'] as num?)?.toDouble();
       final vb = o['boundingPoly'] as Map<String, dynamic>?;
-      final norm = _normalizedBBoxFromVertices(vb);
+      final norm = _normalizedBBoxFromVertices(vb, imgW, imgH);
       if (norm != null) {
         objects.add(VisionObject(name: name, bbox: norm, score: score));
       }
@@ -106,7 +113,11 @@ class ClientDirectVisionAdapter implements VisionService {
     }
   }
 
-  BBox? _normalizedBBoxFromVertices(Map<String, dynamic>? boundingPoly) {
+  BBox? _normalizedBBoxFromVertices(
+    Map<String, dynamic>? boundingPoly,
+    int? imgW,
+    int? imgH,
+  ) {
     if (boundingPoly == null) return null;
     final vertices = boundingPoly['normalizedVertices'] as List<dynamic>?;
 
@@ -125,13 +136,26 @@ class ClientDirectVisionAdapter implements VisionService {
         if (px > maxX) maxX = px;
         if (py > maxY) maxY = py;
       }
-      if (!minX.isFinite || !minY.isFinite || !maxX.isFinite || !maxY.isFinite) {
+      if (!minX.isFinite ||
+          !minY.isFinite ||
+          !maxX.isFinite ||
+          !maxY.isFinite) {
         return null;
       }
       final w = (maxX - minX);
       final h = (maxY - minY);
       if (w <= 0 || h <= 0) return null;
-      return BBox(x: minX, y: minY, w: w, h: h);
+      // 画像サイズが分かる場合は 0〜1 に正規化する
+      if (imgW != null && imgH != null && imgW > 0 && imgH > 0) {
+        final nx = (minX / imgW).clamp(0.0, 1.0);
+        final ny = (minY / imgH).clamp(0.0, 1.0);
+        final nw = (w / imgW).clamp(0.0, 1.0);
+        final nh = (h / imgH).clamp(0.0, 1.0);
+        if (nw <= 0 || nh <= 0) return null;
+        return BBox(x: nx, y: ny, w: nw, h: nh);
+      }
+      // 画像サイズが不明なら描画に使えないので null を返す
+      return null;
     } else {
       double minX = double.infinity;
       double minY = double.infinity;
@@ -145,7 +169,10 @@ class ClientDirectVisionAdapter implements VisionService {
         if (px > maxX) maxX = px;
         if (py > maxY) maxY = py;
       }
-      if (!minX.isFinite || !minY.isFinite || !maxX.isFinite || !maxY.isFinite) {
+      if (!minX.isFinite ||
+          !minY.isFinite ||
+          !maxX.isFinite ||
+          !maxY.isFinite) {
         return null;
       }
       final w = (maxX - minX);
