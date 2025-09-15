@@ -29,10 +29,9 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
     try {
       await ConsentManager.giveConsent();
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (_) => GameStartScreen(camera: widget.camera),
-          ),
+        Navigator.of(context).pushReplacementNamed(
+          '/gameStart',
+          arguments: {'camera': widget.camera},
         );
       }
     } catch (e) {
