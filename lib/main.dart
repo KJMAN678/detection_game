@@ -25,7 +25,7 @@ Future<void> main() async {
   await Firebase.initializeApp();
   await FirebaseAppCheck.instance.activate(
     webProvider: ReCaptchaV3Provider('recaptcha-v3-site-key'),
-    androidProvider: AndroidProvider.debug,
+    androidProvider: AndroidProvider.playIntegrity,
   );
 
   final cameras = await availableCameras();
@@ -154,10 +154,7 @@ class _GameStartScreenState extends State<GameStartScreen> {
     if (!mounted) return;
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => GamePlayScreen(
-          camera: widget.camera,
-          vision: _vision!,
-        ),
+        builder: (_) => GamePlayScreen(camera: widget.camera, vision: _vision!),
       ),
     );
   }
