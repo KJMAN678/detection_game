@@ -318,6 +318,62 @@ class _OverlayPainter extends CustomPainter {
       final offset = Offset(rect.left, rect.top - tp.height - 2);
       tp.paint(canvas, offset);
     }
+    // 追加: 画面上部中央に検出ラベルサマリを表示
+    if (result.objects.isNotEmpty) {
+      final unique = <String, double?>{};
+      for (final o in result.objects) {
+        if (!unique.containsKey(o.name) || (o.score ?? -1) > (unique[o.name] ?? -1)) {
+          unique[o.name] = o.score;
+        }
+      }
+      final entries = unique.entries.toList()
+        ..sort((a, b) {
+          final sa = a.value ?? -1;
+          final sb = b.value ?? -1;
+          return sb.compareTo(sa);
+        });
+      final labels = entries.map((e) => e.key).toList();
+      final summary = labels.join('・');
+
+      if (summary.isNotEmpty) {
+        final style = const TextStyle(
+          color: Color(0xFF212121),
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        );
+        final tp = TextPainter(
+          text: TextSpan(text: summary, style: style),
+          textDirection: TextDirection.ltr,
+          textAlign: TextAlign.center,
+          ellipsis: '…',
+          maxLines: 1,
+        )..layout(maxWidth: size.width * 0.9);
+
+        final textW = tp.width;
+        final textH = tp.height;
+        const paddingH = 8.0;
+        const paddingW = 12.0;
+
+        final bgW = textW + paddingW * 2;
+        final bgH = textH + paddingH * 2;
+        final bgLeft = (size.width - bgW) / 2;
+        const bgTop = 8.0;
+
+        final bgPaint = Paint()..color = const Color(0xFFFFD54F).withValues(alpha: 0.85);
+        final rrect = RRect.fromRectAndRadius(
+          Rect.fromLTWH(bgLeft, bgTop, bgW, bgH),
+          const Radius.circular(6),
+        );
+        canvas.drawRRect(rrect, bgPaint);
+
+        final textOffset = Offset(
+          bgLeft + paddingW + (bgW - 2 * paddingW - textW) / 2,
+          bgTop + paddingH,
+        );
+        tp.paint(canvas, textOffset);
+      }
+    }
+
   }
 
   @override
