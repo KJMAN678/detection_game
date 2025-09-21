@@ -1,10 +1,16 @@
 import java.util.Properties
 import java.io.FileInputStream
 
+val keyFile = rootProject.file("key.properties")
 val keystoreProperties = Properties().apply {
-    val props = rootProject.file("key.properties")
-    if (props.exists()) load(FileInputStream(props))
+    if (keyFile.exists()) {
+        FileInputStream(keyFile).use { load(it) }
+    }
 }
+val hasKeystore = keystoreProperties.containsKey("storeFile") &&
+        keystoreProperties.containsKey("storePassword") &&
+        keystoreProperties.containsKey("keyAlias") &&
+        keystoreProperties.containsKey("keyPassword")
 
 plugins {
     id("com.android.application")
@@ -42,21 +48,23 @@ android {
     }
 
     signingConfigs {
-        create("release") {
-            val storeFilePath = keystoreProperties.getProperty("storeFile")
-                ?: throw GradleException("storeFile missing in key.properties")
-            val storePw = keystoreProperties.getProperty("storePassword")
-                ?: throw GradleException("storePassword missing in key.properties")
-            val alias = keystoreProperties.getProperty("keyAlias")
-                ?: throw GradleException("keyAlias missing in key.properties")
-            val keyPw = keystoreProperties.getProperty("keyPassword")
-                ?: throw GradleException("keyPassword missing in key.properties")
+        if (keyFile.exists()) {
+            create("release") {
+                val storeFilePath = keystoreProperties.getProperty("storeFile")
+                    ?: throw GradleException("storeFile missing in key.properties")
+                val storePw = keystoreProperties.getProperty("storePassword")
+                    ?: throw GradleException("storePassword missing in key.properties")
+                val alias = keystoreProperties.getProperty("keyAlias")
+                    ?: throw GradleException("keyAlias missing in key.properties")
+                val keyPw = keystoreProperties.getProperty("keyPassword")
+                    ?: throw GradleException("keyPassword missing in key.properties")
 
-            println(">>> storeFile resolves to: " + file(storeFilePath).absolutePath)
-            storeFile = file(storeFilePath)           // ← File に変換
-            storePassword = storePw
-            keyAlias = alias
-            keyPassword = keyPw
+                println(">>> storeFile resolves to: " + file(storeFilePath).absolutePath)
+                storeFile = file(storeFilePath)           // ← File に変換
+                storePassword = storePw
+                keyAlias = alias
+                keyPassword = keyPw
+            }
         }
     }
 
@@ -69,10 +77,12 @@ android {
             isShrinkResources = false
         }
         getByName("release") {
-            // いまはデバッグ鍵で署名している状態
-            signingConfig = signingConfigs.getByName("release")
+            // release 署名設定が存在する場合のみ適用（CIなど key.properties 不在時の安全策）
+            val releaseSigning = signingConfigs.findByName("release")
+            if (releaseSigning != null) {
+                signingConfig = releaseSigning
+            }
             isMinifyEnabled = true
-            // リソースの最適化
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
