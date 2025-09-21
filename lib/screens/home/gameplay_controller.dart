@@ -15,15 +15,21 @@ class GameplayController extends StateNotifier<GameplayState> {
 
   Future<void> start() async {
     if (_enableAudio) {
-      await _player!.setReleaseMode(ReleaseMode.loop);
-      await _player!.play(AssetSource('sounds/MusMus-BGM-125.mp3'));
+      final p = _player;
+      if (p != null) {
+        await p.setReleaseMode(ReleaseMode.loop);
+        await p.play(AssetSource('sounds/MusMus-BGM-125.mp3'));
+      }
     }
     _timer = Timer.periodic(const Duration(seconds: 1), (t) async {
       final next = state.remaining - 1;
       if (next <= 0) {
         _timer?.cancel();
         if (_enableAudio) {
-          await _player!.stop();
+          final p = _player;
+          if (p != null) {
+            await p.stop();
+          }
         }
         state = state.copyWith(remaining: 0, timeUp: true);
         return;
