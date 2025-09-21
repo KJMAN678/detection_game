@@ -222,4 +222,8 @@ $ gcloud firebase test android run \
 
 ### Linter
 
-- 
+- [flutter_lints 6.0.0](https://pub.dev/packages/flutter_lints)
+
+```sh
+$ flutter analyze
+```
