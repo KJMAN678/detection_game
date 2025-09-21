@@ -7,10 +7,6 @@ val keystoreProperties = Properties().apply {
         FileInputStream(keyFile).use { load(it) }
     }
 }
-val hasKeystore = keystoreProperties.containsKey("storeFile") &&
-        keystoreProperties.containsKey("storePassword") &&
-        keystoreProperties.containsKey("keyAlias") &&
-        keystoreProperties.containsKey("keyPassword")
 
 plugins {
     id("com.android.application")
@@ -48,35 +44,6 @@ android {
     }
 
     signingConfigs {
-<<<<<<< HEAD
-        if (hasKeystore) {
-            create("release") {
-                val storeFilePath = keystoreProperties.getProperty("storeFile")!!
-                val storePw = keystoreProperties.getProperty("storePassword")!!
-                val alias = keystoreProperties.getProperty("keyAlias")!!
-                val keyPw = keystoreProperties.getProperty("keyPassword")!!
-                storeFile = file(storeFilePath)
-                storePassword = storePw
-                keyAlias = alias
-                keyPassword = keyPw
-            }
-||||||| 482057b
-        create("release") {
-            val storeFilePath = keystoreProperties.getProperty("storeFile")
-                ?: throw GradleException("storeFile missing in key.properties")
-            val storePw = keystoreProperties.getProperty("storePassword")
-                ?: throw GradleException("storePassword missing in key.properties")
-            val alias = keystoreProperties.getProperty("keyAlias")
-                ?: throw GradleException("keyAlias missing in key.properties")
-            val keyPw = keystoreProperties.getProperty("keyPassword")
-                ?: throw GradleException("keyPassword missing in key.properties")
-
-            println(">>> storeFile resolves to: " + file(storeFilePath).absolutePath)
-            storeFile = file(storeFilePath)           // ← File に変換
-            storePassword = storePw
-            keyAlias = alias
-            keyPassword = keyPw
-=======
         if (keyFile.exists()) {
             create("release") {
                 val storeFilePath = keystoreProperties.getProperty("storeFile")
@@ -94,7 +61,6 @@ android {
                 keyAlias = alias
                 keyPassword = keyPw
             }
->>>>>>> 62cc787f32799c586737163206b874be3caa0ee9
         }
     }
 
@@ -107,10 +73,10 @@ android {
             isShrinkResources = false
         }
         getByName("release") {
-            if (hasKeystore) {
-                signingConfig = signingConfigs.getByName("release")
-            }
+            // いまはデバッグ鍵で署名している状態
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
+            // リソースの最適化
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
