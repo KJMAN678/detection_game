@@ -177,3 +177,49 @@ await FirebaseAppCheck.instance.activate(
 $ adb logcat | grep -i "secret into the allow list in the Firebase Console for your project" 
 ```
 
+### テスト
+
+```sh
+$ flutter test
+
+# Firebase TestLab
+$ gcloud components update
+$ gcloud auth login
+$ gccloud config set project FIREBASE_PROJECT_ID
+
+# 利用可能なデバイスを確認
+$ gcloud firebase test android models list
+
+#  特定の Android MODEL_ID に関する詳細情報を取得します。tokay は Pixel 9
+$ gcloud firebase test android models describe tokay
+
+# テストに利用可能な OS のバージョンを確認
+$ gcloud firebase test android versions list
+
+# テストに利用可能なロケールを確認
+$ gcloud firebase test android locales list 
+
+# テストを実行するためのコマンドライン オプションをすべて表示できる
+$ gcloud help firebase test android run
+
+# Robo テスト用に apk を生成
+$ flutter build apk --release
+
+# Robo テストを実行
+# clients-details は、Firebase コンソールでテスト マトリックスを見つけやすくするために、テスト マトリックスにラベルを付ける
+$ gcloud firebase test android run \
+  --type robo \
+  --app build/app/outputs/flutter-apk/app-release.apk  \
+  --device model=tokay,version=36,locale=ja,orientation=portrait \
+  --device model=tokay,version=36,locale=ja,orientation=landscape \
+  --timeout 90s \
+  --client-details matrixLabel="Example matrix label"
+```
+- [ユニットテスト])(https://docs.flutter.dev/cookbook/testing/unit/introduction)
+- [ウィジェットテスト](https://docs.flutter.dev/cookbook/testing/widget/introduction)
+- [統合テスト](https://docs.flutter.dev/testing/integration-tests)
+- [Firebase TestLab](https://firebase.google.com/docs/test-lab?hl=ja)
+
+### Linter
+
+- 
