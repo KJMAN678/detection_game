@@ -231,3 +231,38 @@ $ flutter analyze
 # 自動修正
 $ dart fix --apply
 ```
+
+### Devin
+
+```sh
+# Dependency
+$ cd ~/repos/detection_game && cd ~repos/../ && \
+    sudo DEBIAN_FRONTEND=noninteractive  apt-get update && sudo \
+    DEBIAN_FRONTEND=noninteractive apt-get -y -o Dpkg::Options::="--force-confnew" upgrade && \ 
+    sudo  apt-get -y install  curl git unzip xz-utils zip libglu1-mesa && \
+    rm -rf flutter && git clone https://github.com/flutter/flutter.git -b stable && \
+    cd ~/repos/detection_game
+$ direnv exec . flutter
+
+# linter
+$ direnv exec . flutter analyze
+
+# test
+$ direnv exec . flutter test
+```
+
+### Firebase の RoboテストをDevinで実行する
+- Workload Identity プール を有効にし、プールを作成する
+  - AWS で作成を選択
+- Devin と GitHub に環境変数を設定する
+```sh
+$ gcloud iam workload-identity-pools list \
+   --location=global \
+  --project=HOGE_FIREBASE_PROJECT_ID
+```
+- name を WIF_PROVIDER に設定する
+
+- GCPのIAMのサービスアカウントで、メールアドレスを確認
+  - WIF_SERVICE_ACCOUNT に設定する
+- Firebase のプロジェクト設定で、プロジェクトIDを確認する
+  - FIREBASE_PROJECT_ID に設定する
