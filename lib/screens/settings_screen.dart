@@ -29,7 +29,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('データ送信同意の撤回'),
-        content: const Text('Cloud Vision API へのデータ送信同意を撤回しますか？\nゲーム開始時に再度確認します。'),
+        content: const Text(
+          'Cloud Vision API へのデータ送信同意を撤回しますか？\nゲーム開始時に再度確認します。',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
@@ -48,13 +50,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
         await ConsentManager.withdrawDataTransmissionConsent();
         await _loadStatus();
         if (mounted) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(const SnackBar(content: Text('データ送信同意を撤回しました')));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text('データ送信同意を撤回しました')));
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context)
-              .showSnackBar(SnackBar(content: Text('撤回に失敗しました: $e')));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('撤回に失敗しました: $e')));
         }
       }
     }
@@ -327,9 +331,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: statusColor.withOpacity(0.1),
+            color: statusColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(4),
-            border: Border.all(color: statusColor.withOpacity(0.3)),
+            border: Border.all(color: statusColor.withValues(alpha: 0.3)),
           ),
           child: Text(
             status,

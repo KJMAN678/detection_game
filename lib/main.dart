@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:typed_data';
+// import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:camera/camera.dart';
@@ -19,6 +19,7 @@ import 'services/permission_manager.dart';
 import 'screens/privacy_consent_screen.dart';
 import 'screens/settings_screen.dart';
 import 'widgets/data_transmission_dialog.dart';
+import 'package:flutter/foundation.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -178,10 +179,11 @@ class _GameStartScreenState extends State<GameStartScreen> {
         _error = '$e';
       });
     } finally {
-      if (!mounted) return;
-      setState(() {
-        _loading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }
     }
   }
 
@@ -368,46 +370,47 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
   }
 }
 
-class _BootstrapScreen extends StatelessWidget {
-  final CameraDescription camera;
+// FIXME: 削除
+// class _BootstrapScreen extends StatelessWidget {
+//   final CameraDescription camera;
 
-  const _BootstrapScreen({required this.camera});
+//   const _BootstrapScreen({required this.camera});
 
-  Future<VisionService> _loadVision() async {
-    final callable = FirebaseFunctions.instance.httpsCallable(
-      'callExternalApi',
-    );
-    final res = await callable({});
-    final apiKey = res.data['apiKey'];
-    if (apiKey == null || (apiKey is String && apiKey.trim().isEmpty)) {
-      throw Exception(
-        'VISION_API_KEY が未設定、または取得できませんでした。Cloud Functions のシークレット設定を確認してください。',
-      );
-    }
-    return ClientDirectVisionAdapter(apiKey: apiKey);
-  }
+//   Future<VisionService> _loadVision() async {
+//     final callable = FirebaseFunctions.instance.httpsCallable(
+//       'callExternalApi',
+//     );
+//     final res = await callable({});
+//     final apiKey = res.data['apiKey'];
+//     if (apiKey == null || (apiKey is String && apiKey.trim().isEmpty)) {
+//       throw Exception(
+//         'VISION_API_KEY が未設定、または取得できませんでした。Cloud Functions のシークレット設定を確認してください。',
+//       );
+//     }
+//     return ClientDirectVisionAdapter(apiKey: apiKey);
+//   }
 
-  @override
-  Widget build(BuildContext context) {
-    return FutureBuilder<VisionService>(
-      future: _loadVision(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-        if (snapshot.hasError) {
-          return Scaffold(
-            body: Center(child: Text('初期化エラー: ${snapshot.error}')),
-          );
-        }
-        final vision = snapshot.data!;
-        return TakePictureScreen(camera: camera, vision: vision);
-      },
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return FutureBuilder<VisionService>(
+//       future: _loadVision(),
+//       builder: (context, snapshot) {
+//         if (snapshot.connectionState == ConnectionState.waiting) {
+//           return const Scaffold(
+//             body: Center(child: CircularProgressIndicator()),
+//           );
+//         }
+//         if (snapshot.hasError) {
+//           return Scaffold(
+//             body: Center(child: Text('初期化エラー: ${snapshot.error}')),
+//           );
+//         }
+//         final vision = snapshot.data!;
+//         return TakePictureScreen(camera: camera, vision: vision);
+//       },
+//     );
+//   }
+// }
 
 class TakePictureScreen extends StatefulWidget {
   const TakePictureScreen({
@@ -603,19 +606,27 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
 
   Future<void> _analyze() async {
     // データ送信同意（ゲーム開始前に取得済みならダイアログをスキップ）
+    // マウント中の context をローカルに保持
+    final ctx = context;
     final hasTxConsent = await ConsentManager.hasGivenDataTransmissionConsent();
+
     if (!hasTxConsent) {
+      if (!ctx.mounted) return;
       final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (context) => DataTransmissionDialog(
-          onConfirm: () => Navigator.of(context).pop(true),
-          onCancel: () => Navigator.of(context).pop(false),
+        context: ctx,
+        builder: (dialogCtx) => DataTransmissionDialog(
+          onConfirm: () => Navigator.of(dialogCtx).pop(true),
+          onCancel: () => Navigator.of(dialogCtx).pop(false),
         ),
       );
+      if (!ctx.mounted) return;
+
       if (confirmed == true) {
         await ConsentManager.giveDataTransmissionConsent();
+        if (!ctx.mounted) return;
       } else {
-        if (mounted) Navigator.of(context).pop();
+        if (!ctx.mounted) return;
+        await Navigator.maybePop(ctx);
         return;
       }
     }
@@ -637,8 +648,8 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
       });
       // Simple log
       // ignore: avoid_print
-      print('analyze took ${sw.elapsedMilliseconds} ms');
-      print('objects=${res.objects.length}, labels=${res.labels.length}');
+      debugPrint('analyze took ${sw.elapsedMilliseconds} ms');
+      debugPrint('objects=${res.objects.length}, labels=${res.labels.length}');
     } catch (e) {
       setState(() {
         _error = '$e';
@@ -866,7 +877,7 @@ class _OverlayPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3;
 
-    final textPainter = (String text) {
+    TextPainter textPainter(String text) {
       final tp = TextPainter(
         text: TextSpan(
           text: text,
@@ -876,7 +887,7 @@ class _OverlayPainter extends CustomPainter {
       );
       tp.layout();
       return tp;
-    };
+    }
 
     for (final o in result.objects) {
       final rect = Rect.fromLTWH(
