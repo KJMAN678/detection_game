@@ -1,0 +1,2 @@
+export PATH="$(pwd)/flutter/bin:$PATH"
+export VISION_API_KEY=HOGE
