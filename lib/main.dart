@@ -9,6 +9,8 @@ import 'services/consent_manager.dart';
 import 'screens/privacy_consent_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/detail/detail_screen.dart';
+import 'screens/detail/detail_model.dart';
+
 import 'screens/home/home_screen.dart';
 import 'screens/home/gameplay_screen.dart';
 import 'core/constants.dart';
@@ -73,7 +75,7 @@ Future<void> main() async {
                   'imagePath and vision are required for /displayPicture',
                 );
               }
-              return MaterialPageRoute<dynamic>(
+              return MaterialPageRoute<EarnResult>(
                 builder: (_) => DisplayPictureScreen(
                   imagePath: imagePath,
                   vision: vision,
