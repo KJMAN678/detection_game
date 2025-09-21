@@ -73,8 +73,11 @@ android {
             isShrinkResources = false
         }
         getByName("release") {
-            // いまはデバッグ鍵で署名している状態
-            signingConfig = signingConfigs.getByName("release")
+            // release 署名設定が存在する場合のみ適用（CIなど key.properties 不在時の安全策）
+            val releaseSigning = signingConfigs.findByName("release")
+            if (releaseSigning != null) {
+                signingConfig = releaseSigning
+            }
             isMinifyEnabled = true
             // リソースの最適化
             isShrinkResources = true
