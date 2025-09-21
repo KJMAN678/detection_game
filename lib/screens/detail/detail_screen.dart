@@ -5,9 +5,7 @@ import 'package:detection_game/models/vision_result.dart';
 import 'package:detection_game/screens/detail/detail_model.dart';
 import 'package:flutter/material.dart';
 import 'package:gallery_saver_plus/gallery_saver.dart';
-import 'package:detection_game/services/consent_manager.dart';
 import 'package:detection_game/vision/vision_service.dart';
-import 'package:detection_game/widgets/data_transmission_dialog.dart';
 
 class DisplayPictureScreen extends StatefulWidget {
   final String imagePath;
@@ -51,30 +49,6 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
   }
 
   Future<void> _analyze() async {
-    final ctx = context;
-    final hasTxConsent = await ConsentManager.hasGivenDataTransmissionConsent();
-
-    if (!hasTxConsent) {
-      if (!ctx.mounted) return;
-      final confirmed = await showDialog<bool>(
-        context: ctx,
-        builder: (dialogCtx) => DataTransmissionDialog(
-          onConfirm: () => Navigator.of(dialogCtx).pop(true),
-          onCancel: () => Navigator.of(dialogCtx).pop(false),
-        ),
-      );
-      if (!ctx.mounted) return;
-
-      if (confirmed == true) {
-        await ConsentManager.giveDataTransmissionConsent();
-        if (!ctx.mounted) return;
-      } else {
-        if (!ctx.mounted) return;
-        await Navigator.maybePop(ctx);
-        return;
-      }
-    }
-
     setState(() {
       _loading = true;
       _error = null;
