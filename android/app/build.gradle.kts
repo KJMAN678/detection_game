@@ -44,7 +44,6 @@ android {
     }
 
     signingConfigs {
-<<<<<<< HEAD
         if (keyFile.exists()) {
             create("release") {
                 val storeFilePath = keystoreProperties.getProperty("storeFile")
@@ -62,67 +61,6 @@ android {
                 keyAlias = alias
                 keyPassword = keyPw
             }
-||||||| parent of 60fc0dc (android(build): clean merge-conflict markers and keep release signing conditional (hasKeystore) to unblock Robo CI)
-<<<<<<< HEAD
-        if (hasKeystore) {
-            create("release") {
-                val storeFilePath = keystoreProperties.getProperty("storeFile")!!
-                val storePw = keystoreProperties.getProperty("storePassword")!!
-                val alias = keystoreProperties.getProperty("keyAlias")!!
-                val keyPw = keystoreProperties.getProperty("keyPassword")!!
-                storeFile = file(storeFilePath)
-                storePassword = storePw
-                keyAlias = alias
-                keyPassword = keyPw
-            }
-||||||| 482057b
-        create("release") {
-            val storeFilePath = keystoreProperties.getProperty("storeFile")
-                ?: throw GradleException("storeFile missing in key.properties")
-            val storePw = keystoreProperties.getProperty("storePassword")
-                ?: throw GradleException("storePassword missing in key.properties")
-            val alias = keystoreProperties.getProperty("keyAlias")
-                ?: throw GradleException("keyAlias missing in key.properties")
-            val keyPw = keystoreProperties.getProperty("keyPassword")
-                ?: throw GradleException("keyPassword missing in key.properties")
-
-            println(">>> storeFile resolves to: " + file(storeFilePath).absolutePath)
-            storeFile = file(storeFilePath)           // ← File に変換
-            storePassword = storePw
-            keyAlias = alias
-            keyPassword = keyPw
-=======
-        if (keyFile.exists()) {
-            create("release") {
-                val storeFilePath = keystoreProperties.getProperty("storeFile")
-                    ?: throw GradleException("storeFile missing in key.properties")
-                val storePw = keystoreProperties.getProperty("storePassword")
-                    ?: throw GradleException("storePassword missing in key.properties")
-                val alias = keystoreProperties.getProperty("keyAlias")
-                    ?: throw GradleException("keyAlias missing in key.properties")
-                val keyPw = keystoreProperties.getProperty("keyPassword")
-                    ?: throw GradleException("keyPassword missing in key.properties")
-
-                println(">>> storeFile resolves to: " + file(storeFilePath).absolutePath)
-                storeFile = file(storeFilePath)           // ← File に変換
-                storePassword = storePw
-                keyAlias = alias
-                keyPassword = keyPw
-            }
->>>>>>> 62cc787f32799c586737163206b874be3caa0ee9
-=======
-        if (hasKeystore) {
-            create("release") {
-                val storeFilePath = keystoreProperties.getProperty("storeFile")!!
-                val storePw = keystoreProperties.getProperty("storePassword")!!
-                val alias = keystoreProperties.getProperty("keyAlias")!!
-                val keyPw = keystoreProperties.getProperty("keyPassword")!!
-                storeFile = file(storeFilePath)
-                storePassword = storePw
-                keyAlias = alias
-                keyPassword = keyPw
-            }
->>>>>>> 60fc0dc (android(build): clean merge-conflict markers and keep release signing conditional (hasKeystore) to unblock Robo CI)
         }
     }
 
