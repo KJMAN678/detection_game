@@ -39,8 +39,8 @@ jobs:
       - name: Flutter pub get
         run: flutter pub get
 
-      - name: Build release APK
-        run: flutter build apk --release
+      - name: Build debug APK
+        run: flutter build apk --debug
 
       - name: Auth to Google Cloud (Workload Identity Federation)
         uses: google-github-actions/auth@v2
@@ -63,7 +63,7 @@ jobs:
       - name: Run Firebase Test Lab Robo
         run: |
           set -eux
-          APP_APK="build/app/outputs/flutter-apk/app-release.apk"
+          APP_APK="build/app/outputs/flutter-apk/app-debug.apk"
           if [ ! -f "$APP_APK" ]; then
             echo "APK not found at $APP_APK" >&2
             exit 1
