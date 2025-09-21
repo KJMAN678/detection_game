@@ -1,0 +1,79 @@
+name: Firebase Test Lab Robo (OIDC)
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '.github/workflows/ftl-robo.yml'
+      - 'lib/**'
+      - 'android/**'
+      - 'pubspec.yaml'
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+
+jobs:
+  robo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter pub get
+        run: flutter pub get
+
+      - name: Build debug APK
+        run: flutter build apk --debug
+
+      - name: Auth to Google Cloud (Workload Identity Federation)
+        uses: google-github-actions/auth@v2
+        with:
+          # Set these in repo or org secrets. Example:
+          # WIF_PROVIDER: projects/1234567890/locations/global/workloadIdentityPools/gha-pool/providers/gha
+          # WIF_SERVICE_ACCOUNT: ftl-runner@your-project.iam.gserviceaccount.com
+          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          service_account: ${{ secrets.WIF_SERVICE_ACCOUNT }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Enable required APIs (idempotent)
+        run: |
+          gcloud services enable testing.googleapis.com toolresults.googleapis.com --project "${PROJECT_ID}"
+
+      - name: Run Firebase Test Lab Robo
+        run: |
+          set -eux
+          APP_APK="build/app/outputs/flutter-apk/app-debug.apk"
+          if [ ! -f "$APP_APK" ]; then
+            echo "APK not found at $APP_APK" >&2
+            exit 1
+          fi
+          echo "Using GCP project: ${PROJECT_ID}"
+          gcloud config set project "${PROJECT_ID}"
+          gcloud firebase test android run \
+            --type robo \
+            --app "$APP_APK" \
+            --device model=tokay,version=36,locale=ja,orientation=portrait \
+            --device model=tokay,version=36,locale=ja,orientation=landscape \
+            --timeout 180s \
+            --client-details matrixLabel="DetectionGame-Robo"
