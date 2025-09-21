@@ -133,7 +133,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
   @override
   Widget build(BuildContext context) {
     final imageWidget = Image.file(File(widget.imagePath), fit: BoxFit.contain);
-    final earnedPoints = _totalScore(_result.labels);
+    final earnedPoints = _result.objects.isEmpty ? 0 : _totalScore(_result.labels);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Display the Picture'),
@@ -215,7 +215,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        'get ${_totalScore(_result.labels)} points',
+                        'get $earnedPoints points',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
