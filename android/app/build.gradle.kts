@@ -46,6 +46,7 @@ android {
     }
 
     signingConfigs {
+<<<<<<< HEAD
         if (hasKeystore) {
             create("release") {
                 val storeFilePath = keystoreProperties.getProperty("storeFile")!!
@@ -57,6 +58,41 @@ android {
                 keyAlias = alias
                 keyPassword = keyPw
             }
+||||||| 482057b
+        create("release") {
+            val storeFilePath = keystoreProperties.getProperty("storeFile")
+                ?: throw GradleException("storeFile missing in key.properties")
+            val storePw = keystoreProperties.getProperty("storePassword")
+                ?: throw GradleException("storePassword missing in key.properties")
+            val alias = keystoreProperties.getProperty("keyAlias")
+                ?: throw GradleException("keyAlias missing in key.properties")
+            val keyPw = keystoreProperties.getProperty("keyPassword")
+                ?: throw GradleException("keyPassword missing in key.properties")
+
+            println(">>> storeFile resolves to: " + file(storeFilePath).absolutePath)
+            storeFile = file(storeFilePath)           // ← File に変換
+            storePassword = storePw
+            keyAlias = alias
+            keyPassword = keyPw
+=======
+        if (keyFile.exists()) {
+            create("release") {
+                val storeFilePath = keystoreProperties.getProperty("storeFile")
+                    ?: throw GradleException("storeFile missing in key.properties")
+                val storePw = keystoreProperties.getProperty("storePassword")
+                    ?: throw GradleException("storePassword missing in key.properties")
+                val alias = keystoreProperties.getProperty("keyAlias")
+                    ?: throw GradleException("keyAlias missing in key.properties")
+                val keyPw = keystoreProperties.getProperty("keyPassword")
+                    ?: throw GradleException("keyPassword missing in key.properties")
+
+                println(">>> storeFile resolves to: " + file(storeFilePath).absolutePath)
+                storeFile = file(storeFilePath)           // ← File に変換
+                storePassword = storePw
+                keyAlias = alias
+                keyPassword = keyPw
+            }
+>>>>>>> 62cc787f32799c586737163206b874be3caa0ee9
         }
     }
 
