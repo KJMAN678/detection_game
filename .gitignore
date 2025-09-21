@@ -121,3 +121,5 @@ app.*.symbols
 .device_ip
 
 GoogleService-Info.plist
+
+.envrc
