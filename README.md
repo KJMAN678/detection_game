@@ -256,13 +256,14 @@ $ direnv exec . flutter test
   - AWS で作成を選択
 - Devin と GitHub に環境変数を設定する
 ```sh
-$ gcloud iam workload-identity-pools list \
-   --location=global \
-  --project=HOGE_FIREBASE_PROJECT_ID
+$ gcloud iam workload-identity-pools providers list --workload-identity-pool=POOL_ID --location=global --project=HOGE
 ```
 - name を WIF_PROVIDER に設定する
 
 - GCPのIAMのサービスアカウントで、メールアドレスを確認
   - WIF_SERVICE_ACCOUNT に設定する
+    - 下記の権限を付与
+      - roles/firebase.testAdmin (TestLab 管理者)
+      - roles/serviceusage.serviceUsageConsumer (Service Usage 閲覧者)
 - Firebase のプロジェクト設定で、プロジェクトIDを確認する
   - FIREBASE_PROJECT_ID に設定する
