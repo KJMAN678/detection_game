@@ -318,7 +318,7 @@ class _OverlayPainter extends CustomPainter {
       final offset = Offset(rect.left, rect.top - tp.height - 2);
       tp.paint(canvas, offset);
     }
-    // 追加: 画面上部中央に検出ラベルサマリを表示
+    // 追加: 画面上部中央に検出ラベルを箇条書き（各行先頭に「・」）で表示
     if (result.objects.isNotEmpty) {
       final unique = <String, double?>{};
       for (final o in result.objects) {
@@ -333,29 +333,43 @@ class _OverlayPainter extends CustomPainter {
           return sb.compareTo(sa);
         });
       final labels = entries.map((e) => e.key).toList();
-      final summary = labels.join('・');
 
-      if (summary.isNotEmpty) {
+      if (labels.isNotEmpty) {
         final style = const TextStyle(
           color: Color(0xFF212121),
           fontSize: 16,
           fontWeight: FontWeight.w600,
         );
-        final tp = TextPainter(
-          text: TextSpan(text: summary, style: style),
-          textDirection: TextDirection.ltr,
-          textAlign: TextAlign.center,
-          ellipsis: '…',
-          maxLines: 1,
-        )..layout(maxWidth: size.width * 0.9);
+        final maxWidth = size.width * 0.9;
+        const itemSpacing = 4.0;
+        const paddingV = 8.0;
+        const paddingH = 12.0;
 
-        final textW = tp.width;
-        final textH = tp.height;
-        const paddingH = 8.0;
-        const paddingW = 12.0;
+        final painters = <TextPainter>[];
+        double maxLineW = 0;
+        double totalH = 0;
 
-        final bgW = textW + paddingW * 2;
-        final bgH = textH + paddingH * 2;
+        for (final label in labels) {
+          final lineText = '・$label';
+          final tp = TextPainter(
+            text: TextSpan(text: lineText, style: style),
+            textDirection: TextDirection.ltr,
+            textAlign: TextAlign.center,
+            ellipsis: '…',
+            maxLines: 1,
+          )..layout(maxWidth: maxWidth);
+          painters.add(tp);
+          if (tp.width > maxLineW) {
+            maxLineW = tp.width;
+          }
+          totalH += tp.height;
+        }
+        if (painters.isNotEmpty) {
+          totalH += itemSpacing * (painters.length - 1);
+        }
+
+        final bgW = maxLineW + paddingH * 2;
+        final bgH = totalH + paddingV * 2;
         final bgLeft = (size.width - bgW) / 2;
         const bgTop = 8.0;
 
@@ -366,11 +380,12 @@ class _OverlayPainter extends CustomPainter {
         );
         canvas.drawRRect(rrect, bgPaint);
 
-        final textOffset = Offset(
-          bgLeft + paddingW + (bgW - 2 * paddingW - textW) / 2,
-          bgTop + paddingH,
-        );
-        tp.paint(canvas, textOffset);
+        double y = bgTop + paddingV;
+        for (final tp in painters) {
+          final textX = bgLeft + (bgW - tp.width) / 2;
+          tp.paint(canvas, Offset(textX, y));
+          y += tp.height + itemSpacing;
+        }
       }
     }
 
