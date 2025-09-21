@@ -7,6 +7,10 @@ val keystoreProperties = Properties().apply {
         FileInputStream(keyFile).use { load(it) }
     }
 }
+val hasKeystore = keystoreProperties.containsKey("storeFile") &&
+        keystoreProperties.containsKey("storePassword") &&
+        keystoreProperties.containsKey("keyAlias") &&
+        keystoreProperties.containsKey("keyPassword")
 
 plugins {
     id("com.android.application")
@@ -79,7 +83,6 @@ android {
                 signingConfig = releaseSigning
             }
             isMinifyEnabled = true
-            // リソースの最適化
             isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
