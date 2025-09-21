@@ -68,11 +68,12 @@ jobs:
             echo "APK not found at $APP_APK" >&2
             exit 1
           fi
+          echo "Using GCP project: ${PROJECT_ID}"
           gcloud config set project "${PROJECT_ID}"
           gcloud firebase test android run \
             --type robo \
             --app "$APP_APK" \
             --device model=tokay,version=36,locale=ja,orientation=portrait \
             --device model=tokay,version=36,locale=ja,orientation=landscape \
-            --timeout 90s \
+            --timeout 180s \
             --client-details matrixLabel="DetectionGame-Robo"
