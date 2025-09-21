@@ -225,7 +225,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                     ),
                   ),
                 ),
-              if (!_loading && _error == null)
+              if (!_loading && _error == null && _result.objects.isNotEmpty)
                 Positioned(
                   left: 8,
                   right: 8,
