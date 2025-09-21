@@ -1,2 +1,5 @@
 export PATH="$(pwd)/flutter/bin:$PATH"
 export VISION_API_KEY=HOGE
+export POOL_ID=HOGE_POOL_ID
+export PROVIDER_ID=HOGE_PROVIDER_ID
+export PROJECT_ID=HOGE_PROJECT_ID

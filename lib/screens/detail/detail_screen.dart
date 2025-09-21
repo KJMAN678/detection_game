@@ -133,7 +133,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
   @override
   Widget build(BuildContext context) {
     final imageWidget = Image.file(File(widget.imagePath), fit: BoxFit.contain);
-    final earnedPoints = _totalScore(_result.labels);
+    final earnedPoints = _result.objects.isEmpty ? 0 : _totalScore(_result.labels);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Display the Picture'),
@@ -215,7 +215,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        'get ${_totalScore(_result.labels)} points',
+                        'get $earnedPoints points',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 16,
@@ -225,7 +225,7 @@ class _DisplayPictureScreenState extends State<DisplayPictureScreen> {
                     ),
                   ),
                 ),
-              if (!_loading && _error == null)
+              if (!_loading && _error == null && _result.objects.isNotEmpty)
                 Positioned(
                   left: 8,
                   right: 8,
@@ -318,6 +318,77 @@ class _OverlayPainter extends CustomPainter {
       final offset = Offset(rect.left, rect.top - tp.height - 2);
       tp.paint(canvas, offset);
     }
+    // 追加: 画面上部中央に検出ラベルを箇条書き（各行先頭に「・」）で表示
+    if (result.objects.isNotEmpty) {
+      final unique = <String, double?>{};
+      for (final o in result.objects) {
+        if (!unique.containsKey(o.name) || (o.score ?? -1) > (unique[o.name] ?? -1)) {
+          unique[o.name] = o.score;
+        }
+      }
+      final entries = unique.entries.toList()
+        ..sort((a, b) {
+          final sa = a.value ?? -1;
+          final sb = b.value ?? -1;
+          return sb.compareTo(sa);
+        });
+      final labels = entries.map((e) => e.key).toList();
+
+      if (labels.isNotEmpty) {
+        final style = const TextStyle(
+          color: Color(0xFF212121),
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+        );
+        final maxWidth = size.width * 0.9;
+        const itemSpacing = 4.0;
+        const paddingV = 8.0;
+        const paddingH = 12.0;
+
+        final painters = <TextPainter>[];
+        double maxLineW = 0;
+        double totalH = 0;
+
+        for (final label in labels) {
+          final lineText = '・$label';
+          final tp = TextPainter(
+            text: TextSpan(text: lineText, style: style),
+            textDirection: TextDirection.ltr,
+            textAlign: TextAlign.center,
+            ellipsis: '…',
+            maxLines: 1,
+          )..layout(maxWidth: maxWidth);
+          painters.add(tp);
+          if (tp.width > maxLineW) {
+            maxLineW = tp.width;
+          }
+          totalH += tp.height;
+        }
+        if (painters.isNotEmpty) {
+          totalH += itemSpacing * (painters.length - 1);
+        }
+
+        final bgW = maxLineW + paddingH * 2;
+        final bgH = totalH + paddingV * 2;
+        final bgLeft = (size.width - bgW) / 2;
+        const bgTop = 8.0;
+
+        final bgPaint = Paint()..color = const Color(0xFFFFD54F).withValues(alpha: 0.85);
+        final rrect = RRect.fromRectAndRadius(
+          Rect.fromLTWH(bgLeft, bgTop, bgW, bgH),
+          const Radius.circular(6),
+        );
+        canvas.drawRRect(rrect, bgPaint);
+
+        double y = bgTop + paddingV;
+        for (final tp in painters) {
+          final textX = bgLeft + (bgW - tp.width) / 2;
+          tp.paint(canvas, Offset(textX, y));
+          y += tp.height + itemSpacing;
+        }
+      }
+    }
+
   }
 
   @override

@@ -87,7 +87,8 @@ class ClientDirectVisionAdapter implements VisionService {
       labels.add(VisionLabel(description: description, score: score));
     }
 
-    return VisionResult(objects: objects, labels: labels);
+    final effectiveLabels = objects.isEmpty ? <VisionLabel>[] : labels;
+    return VisionResult(objects: objects, labels: effectiveLabels);
   }
 
   Uint8List _compress(Uint8List input) {
