@@ -2,15 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:camera/camera.dart';
 import '../services/consent_manager.dart';
-import '../main.dart';
+// import '../main.dart';
 
 class PrivacyConsentScreen extends StatefulWidget {
   final CameraDescription camera;
-  
-  const PrivacyConsentScreen({
-    super.key,
-    required this.camera,
-  });
+
+  const PrivacyConsentScreen({super.key, required this.camera});
 
   @override
   State<PrivacyConsentScreen> createState() => _PrivacyConsentScreenState();
@@ -21,11 +18,11 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
 
   Future<void> _giveConsent() async {
     if (!mounted) return;
-    
+
     setState(() {
       _isLoading = true;
     });
-    
+
     try {
       await ConsentManager.giveConsent();
       if (mounted) {
@@ -39,15 +36,16 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
         setState(() {
           _isLoading = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('エラーが発生しました: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('エラーが発生しました: $e')));
       }
     }
   }
 
   Future<void> _openPrivacyPolicy() async {
-    const url = 'https://inky-tea-139.notion.site/26829a2fd70e809993c9d51c7abad7a2?pvs=73';
+    const url =
+        'https://inky-tea-139.notion.site/26829a2fd70e809993c9d51c7abad7a2?pvs=73';
     if (await canLaunchUrl(Uri.parse(url))) {
       await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
     }
@@ -114,9 +112,11 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: _isLoading ? null : () {
-                      Navigator.of(context).pop();
-                    },
+                    onPressed: _isLoading
+                        ? null
+                        : () {
+                            Navigator.of(context).pop();
+                          },
                     child: const Text('同意しない'),
                   ),
                 ),
@@ -158,10 +158,7 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          Text(
-            content,
-            style: const TextStyle(fontSize: 14),
-          ),
+          Text(content, style: const TextStyle(fontSize: 14)),
         ],
       ),
     );

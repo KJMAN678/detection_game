@@ -225,5 +225,9 @@ $ gcloud firebase test android run \
 - [flutter_lints 6.0.0](https://pub.dev/packages/flutter_lints)
 
 ```sh
+# 検出
 $ flutter analyze
+
+# 自動修正
+$ dart fix --apply
 ```
