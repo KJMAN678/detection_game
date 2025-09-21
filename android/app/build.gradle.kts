@@ -1,9 +1,11 @@
 import java.util.Properties
 import java.io.FileInputStream
 
+val keyFile = rootProject.file("key.properties")
 val keystoreProperties = Properties().apply {
-    val props = rootProject.file("key.properties")
-    if (props.exists()) load(FileInputStream(props))
+    if (keyFile.exists()) {
+        FileInputStream(keyFile).use { load(it) }
+    }
 }
 
 plugins {
