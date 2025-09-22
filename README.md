@@ -265,12 +265,14 @@ $ gcloud iam workload-identity-pools providers describe HOGE_PROVIDER_ID \
 
 - GCPのIAMのサービスアカウントで、メールアドレスを確認
   - WIF_SERVICE_ACCOUNT に設定する
-    - 下記の権限を付与
+    - 下記の権限を付与 (まだ不足しているっぽい？)
       - roles/firebase.testAdmin (TestLab 管理者)
-      - roles/serviceusage.serviceUsageConsumer (Service Usage 閲覧者)
       - Workload Identity プール権限を付与する
+      - roles/serviceusage.serviceUsageAdmin (ServiceUsage 管理者)
+      - Cloud Storage Object 管理者
 - Firebase のプロジェクト設定で、プロジェクトIDを確認する
   - FIREBASE_PROJECT_ID に設定する
+- Google Storage のバケットを作成し、BUCKET_NAME に設定する
 
 ### 属性マッピング
 - google.subject==assertion.sub
