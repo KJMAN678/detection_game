@@ -16,6 +16,7 @@ permissions:
 
 env:
   PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+  BUCKET_NAME: ${{ secrets.BUCKET_NAME }}
 
 jobs:
   robo:
@@ -76,4 +77,5 @@ jobs:
             --device model=tokay,version=36,locale=ja,orientation=portrait \
             --device model=tokay,version=36,locale=ja,orientation=landscape \
             --timeout 180s \
-            --client-details matrixLabel="DetectionGame-Robo"
+            --client-details matrixLabel="DetectionGame-Robo" \
+            --results-bucket="${env.BUCKET_NAME}"
