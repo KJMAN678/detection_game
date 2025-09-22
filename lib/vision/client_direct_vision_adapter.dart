@@ -45,29 +45,38 @@ class ClientDirectVisionAdapter implements VisionService {
       'features': requests,
     });
 
-    final decoded = resp.data as Map<String, dynamic>? ?? {};
-    final responses = decoded['responses'] as List<dynamic>? ?? [];
+    final raw = resp.data ?? {};
+    final decoded = Map<String, dynamic>.from(raw as Map);
+    final responses = (decoded['responses'] as List? ?? const [])
+        .cast<Object?>()
+        .map((e) => (e as Map).cast<String, dynamic>())
+        .toList();
     if (responses.isEmpty) {
       throw Exception('Vision API returned empty responses');
     }
-    final first = responses.first as Map<String, dynamic>;
+    final first = responses.first;
 
     final objects = <VisionObject>[];
     final labels = <VisionLabel>[];
 
-    final localizedObjectAnnotations =
-        first['localizedObjectAnnotations'] as List<dynamic>? ?? [];
+    final localizedObjectAnnotations = (first['localizedObjectAnnotations'] as List? ?? const [])
+        .cast<Object?>()
+        .map((e) => (e as Map).cast<String, dynamic>())
+        .toList();
     for (final o in localizedObjectAnnotations) {
       final name = (o['name'] as String?) ?? '';
       final score = (o['score'] as num?)?.toDouble();
-      final vb = o['boundingPoly'] as Map<String, dynamic>?;
+      final vb = (o['boundingPoly'] as Map?)?.cast<String, dynamic>();
       final norm = _normalizedBBoxFromVertices(vb, imgW, imgH);
       if (norm != null) {
         objects.add(VisionObject(name: name, bbox: norm, score: score));
       }
     }
 
-    final labelAnnotations = first['labelAnnotations'] as List<dynamic>? ?? [];
+    final labelAnnotations = (first['labelAnnotations'] as List? ?? const [])
+        .cast<Object?>()
+        .map((e) => (e as Map).cast<String, dynamic>())
+        .toList();
     for (final l in labelAnnotations) {
       final description = (l['description'] as String?) ?? '';
       final score = (l['score'] as num?)?.toDouble();
