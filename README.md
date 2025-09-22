@@ -265,5 +265,14 @@ $ gcloud iam workload-identity-pools providers list --workload-identity-pool=POO
     - 下記の権限を付与
       - roles/firebase.testAdmin (TestLab 管理者)
       - roles/serviceusage.serviceUsageConsumer (Service Usage 閲覧者)
+      - Workload Identity プール権限を付与する
 - Firebase のプロジェクト設定で、プロジェクトIDを確認する
   - FIREBASE_PROJECT_ID に設定する
+
+### 属性マッピング
+- google.subject==assertion.sub
+- attribute.repository_owner_id==assertion.repository_owner_id
+### 属性条件
+- attribute.repository_owner_id=='https://api.github.com/users/<GitHubのユーザー名>でわかるID'
+
+- アクセスを許可、でサービスアカウントとWorkload Identity プールを紐づける
