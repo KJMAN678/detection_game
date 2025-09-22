@@ -1,19 +1,17 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
-import 'package:http/http.dart' as http;
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:image/image.dart' as img;
 
 import '../models/vision_result.dart';
 import 'vision_service.dart';
 
 class ClientDirectVisionAdapter implements VisionService {
-  final String apiKey;
   final int maxLongEdge;
   final int jpegQuality;
 
   ClientDirectVisionAdapter({
-    required this.apiKey,
     this.maxLongEdge = 1280,
     this.jpegQuality = 85,
   });
@@ -36,29 +34,18 @@ class ClientDirectVisionAdapter implements VisionService {
       requests.add({'type': 'LABEL_DETECTION', 'maxResults': 10});
     }
 
-    final uri = Uri.parse(
-      'https://vision.googleapis.com/v1/images:annotate?key=$apiKey',
-    );
-    final body = jsonEncode({
-      'requests': [
-        {
-          'image': {'content': base64Encode(processed)},
-          'features': requests,
-        },
-      ],
+    final imageBase64 = base64Encode(processed);
+
+    // Cloud Functions 経由で Vision API を呼び出す
+    final fns = FirebaseFunctions.instanceFor(region: 'us-central1');
+    final callable = fns.httpsCallable('analyzeImage');
+    final resp = await callable.call<Map<String, dynamic>>({
+      'imageBase64': imageBase64,
+      // サーバ側で参照する場合に備えて、要求した機能も送る
+      'features': requests,
     });
 
-    final res = await http.post(
-      uri,
-      headers: {'Content-Type': 'application/json'},
-      body: body,
-    );
-
-    if (res.statusCode != 200) {
-      throw Exception('Vision API error: HTTP ${res.statusCode} - ${res.body}');
-    }
-
-    final decoded = jsonDecode(res.body) as Map<String, dynamic>;
+    final decoded = resp.data as Map<String, dynamic>? ?? {};
     final responses = decoded['responses'] as List<dynamic>? ?? [];
     if (responses.isEmpty) {
       throw Exception('Vision API returned empty responses');

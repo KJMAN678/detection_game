@@ -87,11 +87,21 @@ $ firebase functions:secrets:set VISION_API_KEY --project your-project-id
 
 # GCP Secret Manager API を有効にする
 # App Engine Admin API を有効にする
+# Firebase が利用しているサービスアカウントに、Secret Manager のアクセス献言を付与する
+- 下記コマンドで、サービスアカウントのメールアドレスを確認できる
+$ gcloud functions describe analyzeImage \
+  --region=us-central1 --gen2 \
+  --format='value(serviceConfig.serviceAccountEmail)'
+
 - .firebaserc のプロジェクトIDを変更する
 - google-services.json を更新する
 
 # cloud functions にデプロイする
-$ firebase deploy --only functions --project your-project-id
+# 関数名を analyzeImage としている
+$ firebase deploy --only functions:analyzeImage --project your-project-id
+
+- なお、関数が実際にデプロイされているかは、下記コマンドを実施すればわかる
+$ firebase functions:list --project your-project-id
 ```
 
 - [証明書の Keytool](https://developers.google.com/android/guides/client-auth?hl=ja)
