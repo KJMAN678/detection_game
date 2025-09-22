@@ -1,19 +1,19 @@
 import 'package:cloud_functions/cloud_functions.dart';
 
 class DataService {
-  Future<String> fetchVisionApiKey() async {
-    final callable = FirebaseFunctions.instance.httpsCallable('callExternalApi');
-    final res = await callable({});
+  Future<Map<String, dynamic>> analyzeImage(String base64String) async {
+    final callable = FirebaseFunctions.instanceFor(
+      region: 'us-central1',
+    ).httpsCallable('analyzeImage');
+
+    final res = await callable.call(<String, dynamic>{
+      'imageBase64': base64String,
+    });
+
     final data = res.data;
     if (data is! Map) {
       throw Exception('Cloud Functions のレスポンス形式が不正です');
     }
-    final apiKey = data['apiKey'] as String?;
-    if (apiKey == null || apiKey.trim().isEmpty) {
-      throw Exception(
-        'VISION_API_KEY が未設定、または取得できませんでした。Cloud Functions のシークレット設定を確認してください。',
-      );
-    }
-    return apiKey;
+    return Map<String, dynamic>.from(data);
   }
 }
