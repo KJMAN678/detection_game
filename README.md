@@ -122,7 +122,7 @@ $ keytool -genkey -v -keystore ~/upload-keystore.jks -keyalg RSA \
 ```
 
 - リリース用証明書のフィンガープリントを取得
-
+- password は key.properties に記載されている
 ```sh
 $ keytool -list -v \
 -alias upload -keystore ~/.android/upload-keystore.jks
