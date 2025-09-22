@@ -256,9 +256,12 @@ $ direnv exec . flutter test
   - AWS で作成を選択
 - Devin と GitHub に環境変数を設定する
 ```sh
-$ gcloud iam workload-identity-pools providers list --workload-identity-pool=POOL_ID --location=global --project=HOGE
+$ gcloud iam workload-identity-pools providers describe HOGE_PROVIDER_ID \
+  --workload-identity-pool=HOGE_POOL_ID \
+  --location=global \
+  --format='value(name)'
 ```
-- name を WIF_PROVIDER に設定する
+- 出力した値を WIF_PROVIDER に設定する
 
 - GCPのIAMのサービスアカウントで、メールアドレスを確認
   - WIF_SERVICE_ACCOUNT に設定する
