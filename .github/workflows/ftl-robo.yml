@@ -75,7 +75,6 @@ jobs:
             --type robo \
             --app "$APP_APK" \
             --device model=tokay,version=36,locale=ja,orientation=portrait \
-            --device model=tokay,version=36,locale=ja,orientation=landscape \
             --timeout 180s \
             --client-details matrixLabel="DetectionGame-Robo" \
             --results-bucket="${env.BUCKET_NAME}"
