@@ -291,3 +291,7 @@ $ gcloud iam workload-identity-pools providers describe HOGE_PROVIDER_ID \
 - attribute.repository_owner_id=='https://api.github.com/users/<GitHubのユーザー名>でわかるID'
 
 - アクセスを許可、でサービスアカウントとWorkload Identity プールを紐づける
+
+
+### BGM
+- [musmus様](https://musmus.main.jp/music_game.html) ゆっくり急げ！
