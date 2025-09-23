@@ -8,5 +8,5 @@ class AppRoutes {
 
 class Durations {
   static const gameTick = Duration(seconds: 1);
-  static const gameLengthSeconds = 10;
+  static const gameLengthSeconds = 30;
 }
