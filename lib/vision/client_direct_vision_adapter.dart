@@ -11,10 +11,7 @@ class ClientDirectVisionAdapter implements VisionService {
   final int maxLongEdge;
   final int jpegQuality;
 
-  ClientDirectVisionAdapter({
-    this.maxLongEdge = 1280,
-    this.jpegQuality = 85,
-  });
+  ClientDirectVisionAdapter({this.maxLongEdge = 240, this.jpegQuality = 30});
 
   @override
   Future<VisionResult> analyze({
@@ -31,7 +28,7 @@ class ClientDirectVisionAdapter implements VisionService {
       requests.add({'type': 'OBJECT_LOCALIZATION'});
     }
     if (modes.contains(VisionMode.labels)) {
-      requests.add({'type': 'LABEL_DETECTION', 'maxResults': 10});
+      requests.add({'type': 'LABEL_DETECTION', 'maxResults': 3});
     }
 
     final imageBase64 = base64Encode(processed);
@@ -59,10 +56,11 @@ class ClientDirectVisionAdapter implements VisionService {
     final objects = <VisionObject>[];
     final labels = <VisionLabel>[];
 
-    final localizedObjectAnnotations = (first['localizedObjectAnnotations'] as List? ?? const [])
-        .cast<Object?>()
-        .map((e) => (e as Map).cast<String, dynamic>())
-        .toList();
+    final localizedObjectAnnotations =
+        (first['localizedObjectAnnotations'] as List? ?? const [])
+            .cast<Object?>()
+            .map((e) => (e as Map).cast<String, dynamic>())
+            .toList();
     for (final o in localizedObjectAnnotations) {
       final name = (o['name'] as String?) ?? '';
       final score = (o['score'] as num?)?.toDouble();
