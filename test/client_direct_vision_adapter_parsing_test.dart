@@ -2,7 +2,7 @@ import 'package:detection_game/models/vision_result.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// This test verifies that maps/lists coming from a dynamic source like
-/// Cloud Functions (typed as Map<Object?, Object?> / List<Object?>)
+/// Cloud Functions (typed as `Map<Object?, Object?>` / `List<Object?>`)
 /// can be safely parsed by the logic in client_direct_vision_adapter.dart.
 /// We replicate the parsing portion by simulating the 'first' response map
 /// and ensuring downstream loops work with casted maps.

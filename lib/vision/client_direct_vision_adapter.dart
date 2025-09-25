@@ -42,8 +42,7 @@ class ClientDirectVisionAdapter implements VisionService {
       'features': requests,
     });
 
-    final raw = resp.data ?? {};
-    final decoded = Map<String, dynamic>.from(raw as Map);
+    final decoded = Map<String, dynamic>.from(resp.data as Map);
     final responses = (decoded['responses'] as List? ?? const [])
         .cast<Object?>()
         .map((e) => (e as Map).cast<String, dynamic>())
