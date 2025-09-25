@@ -18,8 +18,9 @@ import 'core/constants.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  const siteKey = String.fromEnvironment('RECAPTCHA_SITE_KEY');
   await FirebaseAppCheck.instance.activate(
-    webProvider: ReCaptchaV3Provider('recaptcha-v3-site-key'), // ignore: deprecated_member_use
+    webProvider: ReCaptchaV3Provider(siteKey), // ignore: deprecated_member_use
     androidProvider: AndroidProvider.playIntegrity,
   );
 
